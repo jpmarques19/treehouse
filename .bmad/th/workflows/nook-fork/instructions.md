@@ -12,9 +12,10 @@ Create an **isolated development nook** - a new git worktree for focused work:
 - Lineage tracked via branch name prefix (hash) and context.yaml
 
 **Key Architecture Points:**
-- Source of truth: `base_workspace_path/.bmad-tracking/`
-- Two-tier artifact handling:
+- Source of truth: `base_workspace_path/.bmad-tracking/` (git submodule)
+- Three-tier artifact handling:
   - **skip_worktree_paths** (`.bmad/_cfg/agents/`, `.bmad/bmm/config.yaml`): Exist from git, skip-worktree applied
+  - **submodule_paths** (`.bmad-tracking/`, `.gitmodules`): Skip-worktree applied, then removed from nook
   - **gitignore_paths** (`docs/`): Don't exist, must restore if needed
 - User decides when to sync (no forced auto-sync)
 - To get docs in nook: run `nook-restore` after creating nook
@@ -294,37 +295,21 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
   </check>
 </step>
 
-<step n="8" goal="Apply skip-worktree and exclude tracking folder">
-  <critical>Use skip-worktree instead of sparse-checkout - simpler and more reliable!</critical>
-
-  <action>Check if worktree was created with sparse-checkout enabled (git may auto-enable it):</action>
-  ```bash
-  cd "{{worktree_path}}"
-  git config core.sparseCheckout
-  ```
-
-  <check if="sparse-checkout is enabled (output is 'true')">
-    <action>Disable sparse-checkout first (it interferes with skip-worktree):</action>
-    ```bash
-    cd "{{worktree_path}}"
-    git sparse-checkout disable
-    ```
-  </check>
-
-  <action>Read skip_worktree_paths from {module_config}:</action>
-  ```yaml
-  skip_worktree_paths:
-    - .bmad/_cfg/agents
-    - .bmad/bmm/config.yaml
-  ```
-
+<step n="8" goal="Apply skip-worktree and remove submodule from nook">
   <action>Display:</action>
   ```
   Configuring nook isolation...
 
   Applying skip-worktree to:
   - Config files (local changes won't show in git status)
-  - Tracking folder (will be removed from nook)
+  - Submodule pointer and .gitmodules (will be removed from nook)
+  ```
+
+  <action>Read skip_worktree_paths from {module_config}:</action>
+  ```yaml
+  skip_worktree_paths:
+    - .bmad/_cfg/agents
+    - .bmad/bmm/config.yaml
   ```
 
   <action>Apply skip-worktree to config files:</action>
@@ -338,30 +323,29 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
   git update-index --skip-worktree .bmad/bmm/config.yaml 2>/dev/null || true
   ```
 
-  <action>Check if tracking folder is tracked in git:</action>
+  <action>Apply skip-worktree to submodule pointer and .gitmodules:</action>
   ```bash
-  git -C "{{base_path}}" ls-files --cached .bmad-tracking/ | head -1
+  cd "{{worktree_path}}"
+
+  # Skip-worktree on submodule pointer (tracked as gitlink in index)
+  git update-index --skip-worktree .bmad-tracking 2>/dev/null || true
+
+  # Skip-worktree on .gitmodules file
+  git update-index --skip-worktree .gitmodules 2>/dev/null || true
   ```
 
-  <check if="tracking folder is tracked (output not empty)">
-    <action>Apply skip-worktree to tracking folder files:</action>
-    ```bash
-    cd "{{worktree_path}}"
-    git ls-files .bmad-tracking/ | xargs -r git update-index --skip-worktree
-    ```
+  <action>Remove submodule placeholder and .gitmodules from nook:</action>
+  ```bash
+  cd "{{worktree_path}}"
 
-    <action>Remove tracking folder from nook (skip-worktree hides the deletion from git):</action>
-    ```bash
-    rm -rf "{{worktree_path}}/.bmad-tracking/"
-    ```
+  # Remove empty submodule placeholder folder
+  rm -rf .bmad-tracking/
 
-    <action>Verify .bmad-tracking is removed:</action>
-    ```bash
-    test -d "{{worktree_path}}/.bmad-tracking" && echo "WARNING: tracking folder still present" || echo "OK: tracking folder removed"
-    ```
-  </check>
+  # Remove .gitmodules file
+  rm -f .gitmodules
+  ```
 
-  <action>Verify skip-worktree was applied and git status is clean:</action>
+  <action>Verify isolation and clean git status:</action>
   ```bash
   cd "{{worktree_path}}"
   echo "Skip-worktree files: $(git ls-files -v | grep "^S" | wc -l)"
@@ -373,7 +357,8 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
     ```
     Nook isolation configured:
       - Config files: skip-worktree applied (local changes ignored)
-      - Tracking folder: removed from nook (hidden via skip-worktree)
+      - Submodule (.bmad-tracking/): removed from nook
+      - .gitmodules: removed from nook
       - Git status: clean
     ```
   </check>
@@ -383,6 +368,10 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
     ```
     Nook isolation incomplete - git status shows uncommitted changes.
     This may indicate skip-worktree didn't apply correctly.
+
+    Try manually:
+      git update-index --skip-worktree .bmad-tracking
+      git update-index --skip-worktree .gitmodules
     ```
   </check>
 </step>
@@ -483,6 +472,8 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
        - From git, with skip-worktree (local changes won't show in status)
      docs/ does NOT exist (gitignored)
        - Run nook-restore if you need docs
+     .bmad-tracking/ does NOT exist (submodule removed)
+     .gitmodules does NOT exist (removed)
 
   Next Steps:
 
@@ -536,12 +527,12 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
 - Full chain stored in context.yaml in base_workspace_path/.bmad-tracking/
 - Can trace any branch back to its root
 
-**Two-Tier Nook Architecture:**
+**Three-Tier Nook Architecture:**
 
 | Type | Paths | Behavior in Nook |
 |------|-------|------------------|
 | **Skip-worktree** | `.bmad/_cfg/agents/`, `.bmad/bmm/config.yaml` | Exist from git, local changes ignored |
-| **Skip-worktree + removed** | `.bmad-tracking/` | Removed from nook, deletion hidden |
+| **Submodule (skip-worktree + removed)** | `.bmad-tracking/`, `.gitmodules` | Skip-worktree applied, then removed |
 | **Gitignored** | `docs/` | Don't exist, must restore |
 
 **Why skip-worktree for configs:**
@@ -551,12 +542,12 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
 - Each nook can customize configs independently
 - Changes are saved via nook-sync, not git commit
 
-**Why skip-worktree for tracking folder (not sparse-checkout):**
-- Sparse-checkout conflicts with skip-worktree (resets the flags)
-- Skip-worktree is simpler: mark files, then delete folder
-- Git ignores the deletion because of skip-worktree
-- Nooks don't see/modify tracking data directly
-- All tracking goes through base workspace
+**Why submodule for tracking folder:**
+- Submodules don't auto-initialize in worktrees - nooks get empty placeholder
+- Skip-worktree on submodule pointer hides deletion from git status
+- No sparse-checkout complexity needed
+- `.gitmodules` also gets skip-worktree + removal for clean nooks
+- All tracking goes through base workspace via absolute paths
 
 **Why gitignore for docs:**
 - Large directories would bloat git history

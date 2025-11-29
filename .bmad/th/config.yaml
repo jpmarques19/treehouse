@@ -30,7 +30,13 @@ sync_paths:
 
 # Gitignored paths (added to .gitignore during treehouse-init)
 # Gitignoring here means you won't need to commit after sync/restore.
-# Only .bmad-tracking/ in base workspace requires commits.
+# Only .bmad-tracking/ submodule in base workspace requires commits.
 # Remove paths from here if you prefer to commit them locally.
 gitignore_paths:
   - docs
+
+# Auto-commit tracking changes after sync
+# When true: nook-sync automatically commits submodule + parent pointer
+# When false: user must manually commit (allows batching multiple syncs)
+# Default: false
+auto_commit_tracking: false

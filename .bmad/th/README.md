@@ -8,7 +8,7 @@
 
 This module is a **work in progress** with very narrow testing:
 - Tested exclusively with **Claude Code + Opus 4.5**
-- **Tightly coupled with git internals** (worktrees, skip-worktree, sparse-checkout)
+- **Tightly coupled with git internals** (worktrees, submodules, skip-worktree)
 - May leave orphaned worktrees or unexpected git state if workflows are interrupted
 - Not battle-tested across different environments or git versions
 
@@ -36,21 +36,25 @@ Treehouse creates **separate, focused nook environments** (via git worktrees) wh
 Your Repository
 │
 ├── main-worktree/                    ← Base workspace (source of truth)
-│   ├── .bmad-tracking/               ← Centralized context storage
+│   ├── .bmad-tracking/               ← Git submodule (INITIALIZED with content)
+│   │   ├── .git                      ← Submodule's own git directory
 │   │   ├── main/                     ← Context for main branch
 │   │   ├── explore/mvp-scope/        ← Context for exploration nook
 │   │   └── spike/a1b2-new-approach/  ← Context for spike nook
+│   ├── .gitmodules                   ← Submodule configuration
 │   ├── docs/                         ← Current working docs
 │   └── content/                      ← Your files
 │
 ├── worktrees/
 │   ├── a1b2-new-approach/            ← Focused spike environment
 │   │   ├── content/                  ← Can diverge freely
-│   │   └── docs/                     ← Restored from tracking
+│   │   ├── docs/                     ← Restored from tracking
+│   │   └── (no .bmad-tracking/)      ← Submodule NOT initialized
 │   │
 │   └── 7f3e-research-thread/         ← Focused research environment
 │       ├── content/                  ← Dedicated investigation
-│       └── docs/                     ← Restored from tracking
+│       ├── docs/                     ← Restored from tracking
+│       └── (no .bmad-tracking/)      ← Submodule NOT initialized
 ```
 
 **Key insight**: Content can diverge freely in each worktree, but documentation and configuration artifacts flow through a single tracking hub. You explicitly choose when to sync changes back, maintaining conscious control over what context persists.
@@ -60,13 +64,15 @@ Your Repository
 ### Git Worktrees
 Treehouse uses [git worktrees](https://git-scm.com/docs/git-worktree) to create multiple working directories from a single repository. Each worktree has its own branch and working state, but shares the same git history.
 
-### The Tracking Folder
-The `.bmad-tracking/` folder in your base workspace is the **single source of truth** for all context artifacts. It stores:
+### The Tracking Folder (Git Submodule)
+The `.bmad-tracking/` folder in your base workspace is a **git submodule** that serves as the **single source of truth** for all context artifacts. It stores:
 - Documentation snapshots (`docs/`)
 - Configuration files (`.bmad/_cfg/agents/`, `.bmad/bmm/config.yaml`)
 - Context manifests with lineage information (`context.yaml`)
 
 Each branch gets its own subdirectory, preserving context independently.
+
+**Why a submodule?** Git submodules don't auto-initialize in worktrees. This means nooks naturally get an empty placeholder (which is then removed), without needing complex sparse-checkout configuration. The submodule is local-only (no remote repository required).
 
 ### Lineage Tracking
 Every nook records its parent, creating a traceable chain:
@@ -79,15 +85,17 @@ my-project                        ← Base workspace (hash: a1b2)
 
 Branch names encode lineage: `{type}/{parent-hash-4chars}-{name}`
 
-### Two-Tier Artifact System
+### Three-Tier Artifact System
 
 | Type | Paths | In Nook | Git Behavior |
 |------|-------|---------|--------------|
 | **Gitignored** | `docs/` | Don't exist until restored | Not tracked by git |
 | **Skip-worktree** | `.bmad/_cfg/agents/`, `.bmad/bmm/config.yaml` | Exist from git | Tracked but local changes hidden |
+| **Submodule** | `.bmad-tracking/`, `.gitmodules` | Removed via skip-worktree | Tracked, but removed from nooks |
 
 - **Gitignored paths**: Must be explicitly restored via `nook-restore`
 - **Skip-worktree paths**: Exist immediately in nooks, but modifications don't show in `git status`
+- **Submodule paths**: Skip-worktree applied, then removed from nook filesystem
 
 ## Workflows
 
@@ -98,7 +106,7 @@ Branch names encode lineage: `{type}/{parent-hash-4chars}-{name}`
 ```
 
 Establishes the current worktree as the base workspace:
-- Creates `.bmad-tracking/` folder
+- Creates `.bmad-tracking/` as a git submodule (local-only, no remote)
 - Adds `gitignore_paths` (e.g., `docs/`) to `.gitignore`
 - Sets `base_workspace_path` in module config
 
@@ -113,7 +121,8 @@ Establishes the current worktree as the base workspace:
 Creates a focused worktree for dedicated work:
 - Prompts for nook type (`explore/`, `spike/`, `bugfix/`, `discovery/`, `feature/`, `experiment/`, `hotfix/`)
 - Creates new git worktree with hash-based branch name
-- Applies skip-worktree to config files
+- Applies skip-worktree to config files, submodule pointer, and `.gitmodules`
+- Removes `.bmad-tracking/` and `.gitmodules` from nook (they only exist in base)
 - Records lineage in base workspace's tracking folder
 
 **Nook starts clean**—run `nook-restore` if you need to replicate docs from any other workspace.
@@ -128,8 +137,9 @@ Saves current context **to** the base workspace's tracking folder:
 - Copies configured `sync_paths` to `.bmad-tracking/{branch}/`
 - Updates `context.yaml` with lineage and artifact info
 - Works from any worktree (base or nook)
+- Optionally auto-commits submodule changes (controlled by `auto_commit_tracking` config)
 
-**Does not auto-commit**—you must commit `.bmad-tracking/` changes in the base workspace.
+**With submodule architecture**: Committing tracking changes requires TWO commits (inside submodule + parent pointer). Set `auto_commit_tracking: true` for automatic handling, or commit manually.
 
 ### 4. Restore Context from Base
 
@@ -161,9 +171,12 @@ Displays the workspace lineage tree showing all tracked branches and their relat
 # 2. Work on your workspace, sync periodically
 /bmad:th:workflows:nook-sync
 
-# 3. Commit tracking changes (FROM BASE WORKSPACE ONLY!)
+# 3. Commit tracking changes (if auto_commit_tracking: false)
+# With submodule, TWO commits are needed:
 cd /path/to/base-workspace
-git add .bmad-tracking/ && git commit -m "chore(th): sync context"
+cd .bmad-tracking && git add . && git commit -m "sync: context" && cd ..
+git add .bmad-tracking && git commit -m "chore(th): update tracking pointer"
+# Or set auto_commit_tracking: true in config.yaml for automatic handling
 
 # 4. Need to explore something? Create a nook!
 /bmad:th:workflows:nook-fork
@@ -209,16 +222,22 @@ sync_paths:
 # Paths added to .gitignore (don't travel with git)
 gitignore_paths:
   - docs
+
+# Auto-commit tracking changes after sync
+# When true: nook-sync automatically commits submodule + parent pointer
+# When false: user must manually commit (allows batching multiple syncs)
+auto_commit_tracking: false
 ```
 
 ## Known Limitations
 
-1. **Git expertise required**: Understanding worktrees, skip-worktree, and gitignore is essential
+1. **Git expertise required**: Understanding worktrees, submodules, skip-worktree, and gitignore is essential
 2. **Manual cleanup**: Orphaned worktrees must be removed manually (`git worktree remove`)
-3. **No auto-commit**: You must commit `.bmad-tracking/` changes yourself
+3. **Two commits for sync**: Submodule architecture requires committing inside submodule + parent pointer (use `auto_commit_tracking: true` for convenience)
 4. **Single base workspace**: All nooks reference one base—no nested base workspaces
 5. **Narrowly tested**: Only validated with Claude Code + Opus 4.5 on Linux
 6. **Interrupted workflows**: May leave git in unexpected state if aborted mid-workflow
+7. **Greenfield only**: No migration path from older tracking folder approaches
 
 ## Why "Treehouse"?
 

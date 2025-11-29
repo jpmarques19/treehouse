@@ -9,10 +9,11 @@ Save working context (docs, configs, etc.) **TO the base workspace's tracking fo
 This is the single source of truth for all workspace context.
 
 **Key Architecture Points:**
-- All context is saved to `base_workspace_path/.bmad-tracking/{branch}/`
+- All context is saved to `base_workspace_path/.bmad-tracking/{branch}/` (git submodule)
 - Can be run from ANY worktree (base or nook)
 - Sync artifacts from current working directory to base workspace
 - Updates or creates context.yaml with lineage information
+- Optional auto-commit: commits submodule changes + updates parent pointer
 
 <workflow>
 
@@ -256,6 +257,52 @@ This is the single source of truth for all workspace context.
   ```
 </step>
 
+<step n="11a" goal="Optional auto-commit for submodule">
+  <action>Read auto_commit_tracking from {module_config}:</action>
+  ```bash
+  grep "^auto_commit_tracking:" .bmad/th/config.yaml | awk '{print $2}'
+  ```
+  <action>Store as {{auto_commit}} (default: false)</action>
+
+  <check if="auto_commit == true">
+    <action>Display:</action>
+    ```
+    Auto-commit enabled - committing tracking changes...
+
+    With submodule architecture, this requires TWO commits:
+    1. Inside .bmad-tracking/ submodule (the actual file changes)
+    2. In parent repo (update submodule pointer)
+    ```
+
+    <action>Commit changes inside tracking submodule:</action>
+    ```bash
+    cd "{{base_path}}/.bmad-tracking"
+    git add .
+    git commit -m "sync: {{current_branch}} context
+
+    Synced from: {{current_path}}
+    Hash: {{current_hash}}
+
+    Generated with Claude Code" || true
+    ```
+
+    <action>Update parent repo's submodule pointer:</action>
+    ```bash
+    cd "{{base_path}}"
+    git add .bmad-tracking
+    git commit -m "chore(th): update tracking pointer for {{current_branch}}
+
+    Generated with Claude Code" || true
+    ```
+
+    <action>Display: "Auto-commit complete (submodule + pointer)"</action>
+  </check>
+
+  <check if="auto_commit != true">
+    <action>Store {{manual_commit_needed}} = true</action>
+  </check>
+</step>
+
 <step n="12" goal="Report results and remind about commit">
   <action>Display completion summary:</action>
 
@@ -281,20 +328,49 @@ This is the single source of truth for all workspace context.
   {{end for}}
 
   Manifest: {{tracking_path}}/context.yaml
-
-
-  IMPORTANT: Changes saved to BASE WORKSPACE
-
-  The tracking folder is in: {{base_path}}/.bmad-tracking/
-
-  To make this context available for nooks:
-  1. Go to base workspace: cd {{base_path}}
-  2. Stage changes: git add .bmad-tracking/
-  3. Commit: git commit -m "chore(th): sync context for {{current_branch}}"
-
-  To restore this context in another worktree:
-    /bmad:th:workflows:nook-restore
   ```
+
+  <check if="auto_commit == true">
+    <action>Display:</action>
+    ```
+    Auto-commit: ENABLED
+    - Submodule changes committed
+    - Parent pointer updated
+
+    Context is ready to use in other nooks!
+
+    To restore this context in another worktree:
+      /bmad:th:workflows:nook-restore
+    ```
+  </check>
+
+  <check if="manual_commit_needed == true">
+    <action>Display:</action>
+    ```
+    IMPORTANT: Manual commit required (auto_commit_tracking: false)
+
+    The tracking folder is a git submodule. To commit changes:
+
+    1. Go to base workspace:
+       cd {{base_path}}
+
+    2. Commit inside submodule:
+       cd .bmad-tracking
+       git add .
+       git commit -m "sync: {{current_branch}} context"
+       cd ..
+
+    3. Update parent pointer:
+       git add .bmad-tracking
+       git commit -m "chore(th): update tracking pointer"
+
+    To enable auto-commit, set in .bmad/th/config.yaml:
+      auto_commit_tracking: true
+
+    To restore this context in another worktree:
+      /bmad:th:workflows:nook-restore
+    ```
+  </check>
 </step>
 
 </workflow>
@@ -303,10 +379,10 @@ This is the single source of truth for all workspace context.
 
 <notes>
 **Architecture:**
-- All context is stored in base_workspace_path/.bmad-tracking/
+- All context is stored in base_workspace_path/.bmad-tracking/ (git submodule)
 - This workflow copies FROM current directory TO base workspace
 - Can be run from any worktree (base or nook)
-- The tracking folder only exists in the base workspace
+- The tracking folder only exists in the base workspace (initialized submodule)
 
 **Sync Paths:**
 - Configured in .bmad/th/config.yaml under sync_paths
@@ -320,8 +396,24 @@ This is the single source of truth for all workspace context.
 - Created date is preserved, updated date changes
 - Full chain allows tracing nook history
 
+**Submodule Commit Pattern:**
+With the submodule architecture, committing tracking changes requires TWO commits:
+1. **Inside .bmad-tracking/ submodule** - commits the actual file changes
+2. **In parent repo** - commits the updated submodule pointer
+
+This is standard git submodule behavior and provides:
+- Better version control of tracking data
+- Clear separation between code and tracking commits
+- Ability to roll back tracking changes independently
+
+**Auto-Commit Option:**
+- Controlled by `auto_commit_tracking` in .bmad/th/config.yaml
+- Default: false (manual commits required)
+- When true: automatically commits both submodule and pointer
+- When false: shows detailed manual commit instructions
+
 **Commit Responsibility:**
-- This workflow does NOT auto-commit
-- User must commit the tracking folder in base workspace
-- This is intentional - allows batching multiple syncs
+- If auto_commit_tracking: true - workflow handles both commits
+- If auto_commit_tracking: false - user must commit manually
+- Manual mode allows batching multiple syncs before committing
 </notes>

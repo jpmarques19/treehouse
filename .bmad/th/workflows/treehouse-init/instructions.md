@@ -10,7 +10,7 @@ This workflow:
 1. Requires a clean git state (no uncommitted changes)
 2. Adds sync artifacts to .gitignore
 3. Commits the .gitignore changes
-4. Creates the tracking folder with initial context.yaml
+4. Creates the tracking folder as a git submodule with initial context.yaml
 5. Updates th config with base workspace path
 
 <workflow>
@@ -241,12 +241,24 @@ This workflow:
   <action>Display: "Changes committed"</action>
 </step>
 
-<step n="8" goal="Create tracking folder and initial context">
-  <action>Create tracking directory:
+<step n="8" goal="Create tracking submodule and initial context">
+  <action>Display:</action>
+  ```
+  Creating tracking folder as git submodule...
+
+  The tracking folder will be a standalone git repository registered
+  as a submodule. This approach:
+  - Keeps tracking data isolated from nooks (submodules don't auto-initialize in worktrees)
+  - No sparse-checkout or complex git hacks needed
+  - Local-only (no remote repository required)
+  ```
+
+  <action>Create .bmad-tracking as standalone git repository:</action>
   ```bash
   mkdir -p .bmad-tracking/{{current_branch}}
+  cd .bmad-tracking
+  git init
   ```
-  </action>
 
   <action>Create initial context.yaml at .bmad-tracking/{{current_branch}}/context.yaml:</action>
   ```yaml
@@ -283,6 +295,36 @@ This workflow:
   ```
 
   <action>Write the context.yaml file</action>
+
+  <action>Commit tracking repo initial state:</action>
+  ```bash
+  cd .bmad-tracking
+  git add .
+  git commit -m "init: tracking repository for {{current_branch}}
+
+  Base workspace initialized.
+  Generated with Claude Code"
+  cd ..
+  ```
+
+  <action>Register as submodule (local path, no remote):</action>
+  ```bash
+  git submodule add ./.bmad-tracking .bmad-tracking
+  ```
+
+  <action>Commit submodule registration:</action>
+  ```bash
+  git commit -m "chore(th): add tracking submodule
+
+  - .bmad-tracking/ is now a git submodule
+  - Submodule only initializes in base workspace
+  - Nooks get empty placeholder (removed via skip-worktree)
+  - No sparse-checkout needed for isolation
+
+  Generated with Claude Code"
+  ```
+
+  <action>Display: "Tracking submodule created and registered"</action>
 </step>
 
 <step n="9" goal="Report completion">
@@ -305,8 +347,10 @@ This workflow:
      - {{path}}
   {{end for}}
 
-  Tracking: .bmad-tracking/{{current_branch}}/context.yaml
-     (committed to git, excluded from nooks via sparse-checkout)
+  Tracking: .bmad-tracking/ (git submodule)
+     - Submodule initialized here with content
+     - .gitmodules tracked in parent repo
+     - Nooks: submodule not initialized (empty placeholder removed)
 
   Next Steps:
 
@@ -321,10 +365,11 @@ This workflow:
 
   Architecture:
      - This worktree is the SOURCE OF TRUTH
-     - .bmad-tracking/ lives here only
+     - .bmad-tracking/ is a git submodule (initialized here only)
      - Nooks get skip_worktree_paths from git (files exist!)
      - Nooks don't get gitignore_paths (must restore)
-     - nook-sync saves TO here
+     - Nooks don't get .bmad-tracking/ or .gitmodules (skip-worktree + removed)
+     - nook-sync saves TO here (optionally auto-commits submodule)
      - nook-restore loads FROM here
   ```
 </step>
@@ -334,13 +379,13 @@ This workflow:
 ## Notes
 
 <notes>
-**Two-tier artifact tracking architecture:**
+**Three-tier artifact tracking architecture:**
 
 | Type | Paths | Behavior in Nooks |
 |------|-------|-------------------|
 | **Gitignored** | `docs/` | Don't exist - must restore |
 | **Skip-worktree** | `.bmad/_cfg/agents/`, `.bmad/bmm/config.yaml` | Exist from git, local changes ignored |
-| **Tracking** | `.bmad-tracking/` | Excluded via sparse-checkout |
+| **Submodule** | `.bmad-tracking/`, `.gitmodules` | Skip-worktree applied, then removed |
 
 **Why gitignore for docs/:**
 - Large directories that would bloat git history
@@ -360,14 +405,21 @@ This workflow:
 - `git rm --cached` removes files from the index WITHOUT deleting them locally
 - After this, the files are truly untracked and won't appear in git status
 
-**Why tracking folder is committed (not gitignored):**
-- Workspace lineage is preserved in git history
-- Context can be shared with collaborators
-- Tracking survives branch switches
-- Sparse-checkout excludes it from nook worktrees (isolation without gitignore)
+**Why tracking folder is a git submodule:**
+- Submodules don't auto-initialize in worktrees - nooks get empty placeholder
+- No sparse-checkout complexity needed
+- Skip-worktree on submodule pointer hides deletion from git status
+- Local-only (no remote repository required)
+- Two commits for sync: submodule content + parent pointer update
+- Standard git behavior - easy to understand and maintain
+
+**Why .gitmodules gets skip-worktree in nooks:**
+- .gitmodules is a tracked file that references the submodule
+- Nooks don't need it (they don't use the submodule)
+- Skip-worktree + removal keeps nooks clean
 
 **Base workspace responsibilities:**
-- Holds .bmad-tracking/ folder (source of truth)
+- Holds .bmad-tracking/ submodule (source of truth)
 - All workspace context is archived here
 - Should not be deleted while nooks exist
 

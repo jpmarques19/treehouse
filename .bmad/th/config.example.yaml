@@ -37,10 +37,22 @@ sync_paths:
 
 # Gitignored paths (added to .gitignore during treehouse-init)
 # Gitignoring here means you won't need to commit after sync/restore.
-# Only .bmad-tracking/ in base workspace requires commits.
+# Only .bmad-tracking/ submodule in base workspace requires commits.
 # Remove paths from here if you prefer to commit them locally.
 gitignore_paths:
   - docs
+
+# Auto-commit tracking changes after sync
+# When true: nook-sync automatically commits submodule + parent pointer
+# When false: user must manually commit (allows batching multiple syncs)
+# Default: false
+#
+# With submodule architecture, committing tracking changes requires TWO commits:
+# 1. Inside .bmad-tracking/ submodule (the actual file changes)
+# 2. In parent repo (update submodule pointer)
+#
+# Set to true for convenience, false for more control over commit batching.
+auto_commit_tracking: false
 
 # TREEHOUSE WORKFLOWS
 #
@@ -52,8 +64,10 @@ gitignore_paths:
 #   /bmad:th:workflows:treehouse-list     - View workspace lineage tree with cleanup options
 #
 # Architecture:
+# - .bmad-tracking/ is a git submodule (initialized only in base workspace)
+# - Nooks: submodule not initialized, placeholder removed via skip-worktree
 # - gitignore_paths don't need commits after sync/restore
-# - Only .bmad-tracking/ in base workspace needs commits
-# - Nooks start clean (gitignored files don't travel)
-# - nook-sync copies TO base workspace tracking folder
+# - Only .bmad-tracking/ submodule in base workspace needs commits
+# - Nooks start clean (gitignored files + submodule don't travel)
+# - nook-sync copies TO base workspace tracking folder (optionally auto-commits)
 # - nook-restore copies FROM base workspace tracking folder

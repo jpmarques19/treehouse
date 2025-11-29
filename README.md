@@ -29,7 +29,7 @@ Base Workspace
 ---
 
 ⚠️ **EXPERIMENTAL** — Very much WIP, narrowly tested with Claude Code + Opus 4.5.
-Tightly coupled with git internals (worktrees, skip-worktree). Use at your own risk!
+Tightly coupled with git internals (worktrees, submodules, skip-worktree). Use at your own risk!
 
 📄 README: `.bmad/th/README.md`
 
