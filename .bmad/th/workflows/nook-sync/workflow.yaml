@@ -1,0 +1,22 @@
+name: "nook-sync"
+description: "Save working context TO base workspace tracking folder - the single source of truth"
+version: "2.0.0"
+
+# Workflow metadata
+module: th
+category: context
+
+# Configuration references
+config:
+  module_config: ".bmad/th/config.yaml"
+  # sync_paths read from module_config at runtime
+  # base_workspace_path read from module_config at runtime
+
+# Input parameters (none required - auto-detects branch)
+inputs: {}
+
+# Output
+outputs:
+  tracking_path: "Path in base workspace where context was saved"
+  synced_paths: "List of paths that were synced"
+  context_yaml: "Updated context manifest"

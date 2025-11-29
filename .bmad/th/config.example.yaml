@@ -1,0 +1,59 @@
+# Treehouse (th) Module Configuration - Example/Backup
+# Agent-enabled workspaces for focused development
+# Version: 2.0.0
+#
+# NOTE: The main config.yaml gets rewritten by the installer.
+# This .example.yaml file is a reference/backup that preserves your configuration.
+# Copy values from here to config.yaml after reinstalling if needed.
+
+# Core Configuration Values
+bmad_folder: .bmad
+user_name: User
+communication_language: English
+document_output_language: English
+
+# Base Workspace Configuration (set by treehouse-init)
+# These define the source of truth for all workspace tracking
+# Leave empty - will be set automatically when you run treehouse-init
+base_workspace_path: ""   # Absolute path to base worktree
+base_branch: ""         # Branch name of base workspace
+
+# Workspace tracking configuration
+# Directory where branch context is archived (in base workspace only)
+tracking_folder: ".bmad-tracking"
+
+# Git Worktree Configuration
+# Base directory where all nook worktrees are created
+# Customize this path for your system
+worktrees_folder: "/home/user/bmad-worktrees"
+
+# Paths to sync between worktrees
+# Synced TO base_workspace_path/.bmad-tracking/{branch}/ during nook-sync
+# Restored FROM base_workspace_path/.bmad-tracking/{branch}/ during nook-restore
+sync_paths:
+  - docs
+  - .bmad/_cfg/agents
+  - .bmad/bmm/config.yaml
+
+# Gitignored paths (added to .gitignore during treehouse-init)
+# Gitignoring here means you won't need to commit after sync/restore.
+# Only .bmad-tracking/ in base workspace requires commits.
+# Remove paths from here if you prefer to commit them locally.
+gitignore_paths:
+  - docs
+
+# TREEHOUSE WORKFLOWS
+#
+# Available commands:
+#   /bmad:th:workflows:treehouse-init     - Initialize base workspace (run first!)
+#   /bmad:th:workflows:nook-fork          - Create a new nook (starts clean)
+#   /bmad:th:workflows:nook-sync          - Save context to base workspace tracking
+#   /bmad:th:workflows:nook-restore       - Restore context from base workspace tracking
+#   /bmad:th:workflows:treehouse-list     - View workspace lineage tree with cleanup options
+#
+# Architecture:
+# - gitignore_paths don't need commits after sync/restore
+# - Only .bmad-tracking/ in base workspace needs commits
+# - Nooks start clean (gitignored files don't travel)
+# - nook-sync copies TO base workspace tracking folder
+# - nook-restore copies FROM base workspace tracking folder

@@ -1,0 +1,21 @@
+name: "treehouse-list"
+description: "View workspace lineage tree - displays all tracked workspaces from base, with status and cleanup options"
+version: "2.0.0"
+
+# Workflow metadata
+module: th
+category: navigation
+
+# Configuration references
+config:
+  module_config: ".bmad/th/config.yaml"
+  # base_workspace_path read from module_config at runtime
+
+# Input parameters (none required - auto-detects)
+inputs: {}
+
+# Output
+outputs:
+  tree_display: "Visual tree of all workspaces"
+  current_location: "Current branch marked in tree"
+  menu_options: "Follow-up actions available"

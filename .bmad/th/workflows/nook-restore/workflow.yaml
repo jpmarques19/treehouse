@@ -1,0 +1,25 @@
+name: "nook-restore"
+description: "Restore saved context FROM base workspace tracking folder to current worktree"
+version: "2.0.0"
+
+# Workflow metadata
+module: th
+category: context
+
+# Configuration references
+config:
+  module_config: ".bmad/th/config.yaml"
+  # sync_paths read from module_config at runtime
+  # base_workspace_path read from module_config at runtime
+
+# Input parameters
+inputs:
+  source_branch:
+    description: "Branch to restore context from (defaults to current branch, or parent if nook)"
+    required: false
+
+# Output
+outputs:
+  restored_paths: "List of paths that were restored"
+  source_tracking: "Path from which context was restored"
+  source_branch: "Branch whose context was restored"

@@ -1,0 +1,25 @@
+name: "nook-fork"
+description: "Create isolated development nook - new worktree starts clean, no artifacts inherited"
+version: "2.0.0"
+
+# Workflow metadata
+module: th
+category: navigation
+
+# Configuration references
+config:
+  module_config: ".bmad/th/config.yaml"
+
+# Input parameters
+inputs:
+  nook_type:
+    description: "Type of nook (explore, spike, bugfix, etc.)"
+    required: false  # Interactive selection if not provided
+  nook_name:
+    description: "Name for the nook (kebab-case)"
+    required: false  # Interactive input if not provided
+
+# Output
+outputs:
+  new_branch: "Created branch name"
+  worktree_path: "Path to new worktree"
