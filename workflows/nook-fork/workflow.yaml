@@ -1,6 +1,6 @@
 name: "nook-fork"
-description: "Create isolated development nook - new worktree starts clean, no artifacts inherited"
-version: "2.0.0"
+description: "Create isolated development nook with optional Agent Wizard - customize a specialist agent for your task"
+version: "2.2.0"
 
 # Workflow metadata
 module: th
@@ -18,8 +18,14 @@ inputs:
   nook_name:
     description: "Name for the nook (kebab-case)"
     required: false  # Interactive input if not provided
+  skip_wizard:
+    description: "Skip Agent Wizard and create clean fork (default: false)"
+    required: false
+    default: false
 
 # Output
 outputs:
   new_branch: "Created branch name"
   worktree_path: "Path to new worktree"
+  custom_agent: "Custom agent name (if wizard was used)"
+  lineage_context: "Inherited context gathered from parent nooks (if wizard was used)"

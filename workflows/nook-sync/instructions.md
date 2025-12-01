@@ -194,6 +194,68 @@ This is the single source of truth for all workspace context.
   <action>Record which paths were synced and file counts</action>
 </step>
 
+<step n="9a" goal="Generate nook summary for context analyst">
+  <action>Gather information to generate a meaningful summary:</action>
+
+  <action>1. Get git commits since nook was forked (or last 20 if many):</action>
+  ```bash
+  # Find fork point from parent branch (if known from existing context)
+  git log --oneline -20 --no-merges
+  ```
+
+  <action>2. Get list of files changed in this nook:</action>
+  ```bash
+  git diff --name-only HEAD~10 2>/dev/null || git diff --name-only --cached
+  ```
+
+  <action>3. If docs/ was synced, scan doc titles/headers for context:</action>
+  ```bash
+  # Read first few lines of each doc for context
+  head -20 docs/*.md 2>/dev/null || true
+  ```
+
+  <action>4. Check for any existing summary in parent's context.yaml (if this is an update)</action>
+
+  <action>5. Analyze the gathered information and generate summary:</action>
+
+  <critical>
+  Generate a MEANINGFUL summary based on actual work done in this nook.
+  Do NOT use placeholder text. Analyze:
+  - Commit messages reveal PURPOSE and DECISIONS
+  - Changed files reveal SCOPE of work
+  - Doc content reveals INSIGHTS and FINDINGS
+  - Unfinished work or TODOs reveal NEXT STEPS
+  - Error mentions or "fix" commits may reveal BLOCKERS
+  </critical>
+
+  <action>Construct {{nook_summary}} object:</action>
+  ```yaml
+  summary:
+    purpose: |
+      [1-2 sentences: WHY this nook exists, derived from branch name + commits]
+
+    insights:
+      [List key findings/learnings from docs and commits, or empty if none]
+
+    decisions:
+      [List of {decision, rationale} pairs from commits/docs, or empty if none]
+
+    status: |
+      [Current state: what's done, what's in progress]
+
+    blockers:
+      [Known issues or blockers discovered, or empty if none]
+
+    next_steps:
+      [Recommended actions based on TODOs, incomplete work, or logical next steps]
+  ```
+
+  <note>
+  If this is a fresh nook with minimal commits, generate a minimal but accurate summary.
+  It's better to have "purpose: Exploring X" with empty insights than fabricated content.
+  </note>
+</step>
+
 <step n="10" goal="Build and update lineage">
   <action>Build current branch's lineage entry:</action>
   ```yaml
@@ -217,7 +279,7 @@ This is the single source of truth for all workspace context.
   <action>Store final lineage as {{full_lineage}}</action>
 </step>
 
-<step n="11" goal="Generate context manifest with lineage">
+<step n="11" goal="Generate context manifest with lineage and summary">
   <action>Create or update `{{tracking_path}}/context.yaml` with:</action>
 
   ```yaml
@@ -228,6 +290,36 @@ This is the single source of truth for all workspace context.
   synced_at: {{date}}
   synced_by: {user_name}
   synced_from: {{current_path}}
+
+  # AI-generated nook summary (for nook-context-analyst)
+  # This section provides semantic context about the nook's work
+  summary:
+    purpose: |
+      {{nook_summary.purpose}}
+
+    insights:
+      {{for each insight in nook_summary.insights}}
+      - {{insight}}
+      {{end for}}
+
+    decisions:
+      {{for each decision in nook_summary.decisions}}
+      - decision: {{decision.decision}}
+        rationale: {{decision.rationale}}
+      {{end for}}
+
+    status: |
+      {{nook_summary.status}}
+
+    blockers:
+      {{for each blocker in nook_summary.blockers}}
+      - {{blocker}}
+      {{end for}}
+
+    next_steps:
+      {{for each step in nook_summary.next_steps}}
+      - {{step}}
+      {{end for}}
 
   # Full lineage chain (oldest to newest)
   lineage:
@@ -327,6 +419,14 @@ This is the single source of truth for all workspace context.
      {{index}}. {{entry.branch}} ({{entry.hash}})
   {{end for}}
 
+  Summary Generated:
+  ┌─────────────────────────────────────────────────────────
+  │ Purpose: {{nook_summary.purpose | truncate(80)}}
+  │ Status:  {{nook_summary.status | truncate(80)}}
+  │ Insights: {{nook_summary.insights | length}} | Decisions: {{nook_summary.decisions | length}}
+  │ Blockers: {{nook_summary.blockers | length}} | Next Steps: {{nook_summary.next_steps | length}}
+  └─────────────────────────────────────────────────────────
+
   Manifest: {{tracking_path}}/context.yaml
   ```
 
@@ -416,4 +516,22 @@ This is standard git submodule behavior and provides:
 - If auto_commit_tracking: true - workflow handles both commits
 - If auto_commit_tracking: false - user must commit manually
 - Manual mode allows batching multiple syncs before committing
+
+**Nook Summary Generation:**
+Each sync generates an AI-analyzed summary for the nook-context-analyst:
+- **purpose**: Why this nook exists (derived from branch name + commits)
+- **insights**: Key findings/learnings discovered during work
+- **decisions**: Important choices made with rationale
+- **status**: Current state of work (done/in-progress)
+- **blockers**: Known issues or obstacles
+- **next_steps**: Recommended actions for context resumption
+
+The summary is generated by analyzing:
+- Git commit messages (reveal purpose, decisions, fixes)
+- Changed files (reveal scope of work)
+- Doc content (reveal insights and findings)
+- TODOs and incomplete work (reveal next steps)
+
+This enables the nook-context-analyst to provide meaningful context
+without reading all artifacts - useful for quick lineage understanding.
 </notes>

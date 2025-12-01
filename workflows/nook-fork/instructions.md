@@ -233,6 +233,393 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
   ```
 </step>
 
+<step n="5a" goal="Agent Wizard - Gather Task Intent">
+  <check if="skip_wizard input is true">
+    <action>Display: "Agent Wizard skipped via input parameter..."</action>
+    <action>Skip to step 6</action>
+  </check>
+
+  <ask>
+  AGENT WIZARD (optional)
+
+  What are you trying to achieve in this nook?
+
+  Describe your task and I'll create a custom specialist agent tailored
+  specifically for this work. The agent will have:
+  - A unique name and personality
+  - Task-specific expertise and principles
+  - Pre-loaded context about your goal
+  - Relevant workflows in its menu
+  - Custom prompts for quick actions
+
+  Examples:
+  - "Debug the MQTT reconnection race condition"
+  - "Explore a new caching architecture"
+  - "Write comprehensive test coverage for the actor system"
+  - "Research WebSocket alternatives"
+  - "Refactor the playlist management code"
+
+  Press Enter to skip (creates clean fork with default configs)
+  </ask>
+
+  <check if="user provides description (non-empty input)">
+    <action>Store as {{task_intent}}</action>
+    <action>Proceed to step 5a-context</action>
+  </check>
+
+  <check if="user presses Enter / provides empty input">
+    <action>Display: "Skipping Agent Wizard - creating clean nook..."</action>
+    <action>Set {{wizard_skipped}} = true</action>
+    <action>Skip to step 6 (worktree folder validation)</action>
+  </check>
+</step>
+
+<step n="5a-context" goal="Agent Wizard - Gather Big Picture Context">
+  <action>Display:</action>
+  ```
+  Gathering context from parent nooks...
+  This will help create a well-informed specialist agent.
+  ```
+
+  <action>Invoke nook-context-analyst agent to gather lineage context:</action>
+  <critical>
+  Use the Task tool with subagent_type='nook-context-analyst' to:
+  1. Trace the lineage of the current nook/branch
+  2. Read summaries from all parent context.yaml files
+  3. Gather inherited decisions, constraints, and project context
+  4. Focus on context relevant to {{task_intent}}
+
+  Prompt for the agent:
+  "Analyze the nook lineage for the current workspace. The user is about to create
+  a new nook for this task: '{{task_intent}}'.
+
+  Please provide:
+  1. A brief lineage overview (branch chain)
+  2. Key inherited context relevant to this task (decisions, constraints, architecture)
+  3. Project-level context that should be embedded in a specialist agent's memory
+  4. Any warnings or considerations for this type of work
+
+  Keep the response focused and actionable - this will inform agent creation."
+  </critical>
+
+  <action>Store the context analyst's response as {{lineage_context}}</action>
+  <action>Extract key elements:</action>
+  - {{inherited_decisions}} - decisions from parent nooks
+  - {{project_constraints}} - constraints that apply
+  - {{architecture_context}} - relevant architecture info
+  - {{parent_purpose}} - what parent nooks were working on
+
+  <action>Display summary to user:</action>
+  ```
+  Lineage Context Gathered
+
+  {{lineage_context.brief_summary}}
+
+  Relevant Inherited Context:
+  {{for each item in inherited_context, max 5}}
+  - {{item}}
+  {{end for}}
+
+  This context will be embedded in your specialist agent.
+  ```
+
+  <action>Proceed to step 5b</action>
+</step>
+
+<step n="5b" goal="Agent Wizard - Select Base Agent">
+  <action>Load list of available base agents from .bmad/_cfg/agents/*.customize.yaml</action>
+
+  <action>Analyze {{task_intent}} and match to best base agent using this mapping:</action>
+
+  <agent_selection_matrix>
+  | Task Pattern Keywords | Best Base Agent | Agent Title | Reasoning |
+  |----------------------|-----------------|-------------|-----------|
+  | debug, fix, bug, error, race, crash, broken, issue | bmm-dev | Developer Agent | Senior engineer for implementation and debugging |
+  | explore, investigate, research, understand, analyze, dig | bmm-analyst | Business Analyst | Discovery and analysis expert |
+  | architecture, design, system, scale, infrastructure, api | bmm-architect | Architect | System design specialist |
+  | test, coverage, QA, validation, verify, quality | bmm-tea | Test Engineer Agent | Testing and quality expert |
+  | docs, documentation, explain, write, readme, guide | bmm-tech-writer | Technical Writer | Documentation specialist |
+  | ui, ux, user experience, interface, design, wireframe | bmm-ux-designer | UX Designer | Design specialist |
+  | brainstorm, ideas, creative, innovate, think | cis-brainstorming-coach | Brainstorming Coach | Creative facilitation |
+  | problem, solve, challenge, stuck, complex | cis-creative-problem-solver | Problem Solver | Systematic problem-solving |
+  | story, narrative, presentation, pitch, communicate | cis-storyteller | Storyteller | Communication specialist |
+  | sprint, agile, tickets, stories, backlog, jira | bmm-sm | Scrum Master | Sprint and agile management |
+  | requirements, features, specs, product, roadmap | bmm-pm | Product Manager | Product management |
+  | framework, library, code patterns, refactor, clean | bmm-frame-expert | Framework Expert | Framework and patterns expertise |
+  </agent_selection_matrix>
+
+  <action>If task matches multiple patterns equally, or no clear match:</action>
+  <ask>I found multiple agents that could help. Which best fits your needs?
+
+  1. {{agent_option_1}} - {{agent_1_reasoning}}
+  2. {{agent_option_2}} - {{agent_2_reasoning}}
+  3. {{agent_option_3}} - {{agent_3_reasoning}}
+
+  Choose [1-3]:
+  </ask>
+
+  <action>Store selected agent as {{base_agent}}</action>
+  <action>Store agent title as {{base_agent_title}}</action>
+  <action>Store agent file path as {{base_agent_path}} (.bmad/_cfg/agents/{{base_agent}}.customize.yaml)</action>
+
+  <action>Display: "Selected base agent: {{base_agent_title}}"</action>
+</step>
+
+<step n="5c" goal="Agent Wizard - Generate Custom Agent Profile">
+  <action>Based on {{task_intent}} and {{base_agent}}, generate customization:</action>
+
+  <customization_generation>
+    Generate the following customization YAML based on the task intent:
+
+    1. **agent.metadata.name** - Create a fitting human name:
+       - MUST be a proper human first name (not a job title or descriptor)
+       - Choose a name that resonates with and reads well alongside the role
+       - Name must NOT repeat words from the role - avoid redundancy
+       - Examples: "Aria", "Felix", "Mira", "Quinn", "Sage", "Nova"
+
+    2. **persona.role** - Specialize the role:
+       - Start with base agent's role
+       - Add task-specific specialization
+       - Example: "Concurrency Bug Hunter + Thread Safety Expert"
+
+    3. **persona.identity** - Add specific expertise:
+       - Include relevant technical areas from task description
+       - Reference specific technologies, patterns, or domains mentioned
+       - Example: "Expert in Python threading, asyncio, and actor model concurrency"
+
+    4. **persona.communication_style** - Tailor to task type:
+       - Debugging tasks: More methodical, precise, investigative
+       - Research tasks: More exploratory, questioning, curious
+       - Creative tasks: More enthusiastic, building on ideas
+       - Example: "Thinks out loud through timing sequences. Uses diagrams to visualize thread interleaving."
+
+    5. **persona.principles** - Add task-specific principles (3-5):
+       - Ground rules specific to this type of work
+       - Example for debugging: "Always assume timing issue until proven otherwise"
+       - Example for research: "Question every assumption"
+
+    6. **critical_actions** (2-4 items):
+       - Task-specific actions the agent must always do
+       - Reference project-specific patterns if relevant
+       - Example: "Check BaseMPDConnection._execute_with_lock() for thread safety"
+
+       <critical>
+       ALWAYS include this critical action:
+       - "For broader project context or to understand inherited constraints, invoke the nook-context-analyst agent (Task tool with subagent_type='nook-context-analyst'). This agent can trace lineage and gather context from parent nooks."
+       </critical>
+
+    7. **memories** (5-10 items):
+       - Pre-load context about the task
+       - Include the task description itself
+       - Add relevant project-specific knowledge
+       - Example: "Currently investigating MQTT reconnection timing issues"
+
+       <critical>
+       EMBED LINEAGE CONTEXT IN MEMORIES:
+       Use {{lineage_context}} gathered in step 5a-context to add:
+       - Key inherited decisions from parent nooks
+       - Project-level constraints that affect this work
+       - Architecture patterns relevant to the task
+       - Parent nook's purpose/findings if related
+       - Any warnings or considerations identified
+
+       Example memories from lineage context:
+       - "INHERITED: Project uses Pykka actor architecture - all actors must be supervised"
+       - "INHERITED: MPD connections require _execute_with_lock() for thread safety"
+       - "PARENT CONTEXT: Boot flow validation discovered PipeWire audio instability"
+       - "CONSTRAINT: Docker deployment is mandatory for edge device"
+       - "LINEAGE: This work traces back to peek-a-box-mvp (9d4d) epic"
+       </critical>
+
+    8. **menu** (1-3 items):
+       ONLY use existing workflows from these modules:
+       - bmm: dev-story, code-review, story-context, create-story, research, brainstorm-project, architecture, create-diagram, create-dataflow, create-flowchart, create-wireframe, document-project, prd
+       - core: brainstorming, party-mode
+       - cis: problem-solving, design-thinking, storytelling, innovation-strategy
+
+       Match workflows to task:
+       - Debug tasks: code-review, story-context
+       - Research tasks: research, brainstorm-project
+       - Architecture: architecture, create-diagram, create-dataflow
+       - Testing: dev-story (for writing tests)
+       - Documentation: document-project
+
+    9. **prompts** (1-2 custom inline prompts):
+       - Create task-specific quick actions
+       - Example for debugging: prompt to analyze recent git changes
+       - Example for research: prompt to summarize findings
+       - Each prompt needs: id (kebab-case), content (the instructions)
+  </customization_generation>
+
+  <action>Generate YAML content matching the customize.yaml schema:</action>
+  ```yaml
+  # Agent Customization - Generated by Agent Wizard
+  # Nook: {{new_branch}}
+  # Task: {{task_intent}}
+  # Lineage: {{lineage_context.branch_chain}}
+
+  agent:
+    metadata:
+      name: "{{generated_custom_name}}"
+
+  persona:
+    role: "{{generated_role}}"
+    identity: "{{generated_identity}}"
+    communication_style: "{{generated_style}}"
+    principles:
+      {{for each principle}}
+      - "{{principle}}"
+      {{end for}}
+
+  critical_actions:
+    # REQUIRED: Context analyst availability
+    - "For broader project context or inherited constraints, use the nook-context-analyst agent (Task tool with subagent_type='nook-context-analyst'). It traces lineage and gathers context from parent nooks."
+    # Task-specific critical actions
+    {{for each action}}
+    - "{{action}}"
+    {{end for}}
+
+  memories:
+    # Task intent
+    - "TASK: {{task_intent}}"
+    # Lineage context (from nook-context-analyst)
+    {{for each inherited_item in lineage_context.inherited}}
+    - "INHERITED: {{inherited_item}}"
+    {{end for}}
+    {{for each constraint in lineage_context.constraints}}
+    - "CONSTRAINT: {{constraint}}"
+    {{end for}}
+    {{if lineage_context.parent_findings}}
+    - "PARENT CONTEXT: {{lineage_context.parent_findings}}"
+    {{end if}}
+    - "LINEAGE: {{lineage_context.branch_chain}}"
+    # Task-specific memories
+    {{for each memory}}
+    - "{{memory}}"
+    {{end for}}
+
+  menu:
+    {{for each menu_item}}
+    - trigger: {{menu_item.trigger}}
+      workflow: "{{menu_item.workflow_path}}"
+      description: "{{menu_item.description}}"
+    {{end for}}
+
+  prompts:
+    {{for each prompt}}
+    - id: {{prompt.id}}
+      content: |
+        {{prompt.content}}
+    {{end for}}
+  ```
+
+  <action>Store generated YAML as {{customization_yaml}}</action>
+  <action>Store custom name as {{custom_name}}</action>
+</step>
+
+<step n="5d" goal="Agent Wizard - User Approval">
+  <action>Display customization preview:</action>
+
+  ```
+  ╔═══════════════════════════════════════════════════════════════════╗
+  ║                     NOOK AGENT PREVIEW                            ║
+  ╠═══════════════════════════════════════════════════════════════════╣
+  ║  Base Agent: {{base_agent_title}}                                 ║
+  ║  Task: {{task_intent_short}}                                      ║
+  ╠═══════════════════════════════════════════════════════════════════╣
+  ║                                                                   ║
+  ║  Your Custom Specialist:                                          ║
+  ║  ┌───────────────────────────────────────────────────────────┐   ║
+  ║  │  {{custom_name}}                                          │   ║
+  ║  │  "{{custom_identity_short}}"                              │   ║
+  ║  └───────────────────────────────────────────────────────────┘   ║
+  ║                                                                   ║
+  ║  Role: {{custom_role}}                                            ║
+  ║  Style: {{custom_style_preview}}                                  ║
+  ║                                                                   ║
+  ║  Principles:                                                      ║
+  ║  {{for each principle, max 3}}                                    ║
+  ║    - {{principle}}                                                ║
+  ║  {{end for}}                                                      ║
+  ║                                                                   ║
+  ╠───────────────────────────────────────────────────────────────────╣
+  ║  INHERITED CONTEXT (from lineage):                                ║
+  ║  {{for each item in lineage_context.inherited, max 3}}            ║
+  ║    ◆ {{item}}                                                     ║
+  ║  {{end for}}                                                      ║
+  ╠───────────────────────────────────────────────────────────────────╣
+  ║                                                                   ║
+  ║  Pre-loaded Memories:                                             ║
+  ║  {{for each memory, max 3}}                                       ║
+  ║    - {{memory_short}}                                             ║
+  ║  {{end for}}                                                      ║
+  ║  + {{lineage_context.memory_count}} inherited context items       ║
+  ║                                                                   ║
+  ║  Critical Actions:                                                ║
+  ║    ⚡ nook-context-analyst available for big picture              ║
+  ║  {{for each action, max 2}}                                       ║
+  ║    ⚡ {{action_short}}                                            ║
+  ║  {{end for}}                                                      ║
+  ║                                                                   ║
+  ║  Added Menu Commands:                                             ║
+  ║  {{for each menu_item}}                                           ║
+  ║    *{{menu_item.trigger}} - {{menu_item.description}}             ║
+  ║  {{end for}}                                                      ║
+  ║                                                                   ║
+  ║  Custom Prompts:                                                  ║
+  ║  {{for each prompt}}                                              ║
+  ║    #{{prompt.id}} - {{prompt.preview}}                            ║
+  ║  {{end for}}                                                      ║
+  ║                                                                   ║
+  ╠═══════════════════════════════════════════════════════════════════╣
+  ║  Lineage: {{lineage_context.branch_chain}}                        ║
+  ║  This will modify: .bmad/_cfg/agents/{{base_agent}}.customize.yaml║
+  ║  (Skip-worktree applied - changes stay local to this nook)        ║
+  ╚═══════════════════════════════════════════════════════════════════╝
+  ```
+
+  <ask>
+  Options:
+  [A] Accept  - Create nook with this custom agent
+  [M] Modify  - Tell me what to change
+  [S] Skip    - Create clean nook without customization
+  [C] Cancel  - Abort nook creation
+
+  Choose [A/M/S/C]:
+  </ask>
+
+  <check if="user_choice == A or Accept or accept">
+    <action>Display: "Agent customization approved!"</action>
+    <action>Keep {{customization_yaml}} for application in Step 8a</action>
+    <action>Continue to Step 6</action>
+  </check>
+
+  <check if="user_choice == M or Modify or modify">
+    <ask>What would you like to change?
+
+    You can say things like:
+    - "Make the name more serious"
+    - "Add a memory about XYZ"
+    - "Remove the code-review workflow"
+    - "Change the communication style to be more casual"
+    </ask>
+    <action>Update {{customization_yaml}} based on user feedback</action>
+    <action>Return to display preview (loop until Accept/Skip/Cancel)</action>
+  </check>
+
+  <check if="user_choice == S or Skip or skip">
+    <action>Clear {{customization_yaml}}</action>
+    <action>Set {{wizard_skipped}} = true</action>
+    <action>Display: "Creating clean nook without agent customization..."</action>
+    <action>Continue to Step 6</action>
+  </check>
+
+  <check if="user_choice == C or Cancel or cancel">
+    <action>Display: "Nook creation cancelled."</action>
+    <action>HALT workflow</action>
+  </check>
+</step>
+
 <step n="6" goal="Validate worktrees folder">
   <action>Read worktrees_folder from {module_config}</action>
 
@@ -376,6 +763,51 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
   </check>
 </step>
 
+<step n="8a" goal="Apply Agent Customization (if wizard was used)">
+  <check if="{{customization_yaml}} exists AND {{wizard_skipped}} is NOT true">
+    <action>Display:</action>
+    ```
+    Applying agent customization...
+    ```
+
+    <action>Write customization to nook's customize.yaml:</action>
+    ```bash
+    # The file path in the NEW nook
+    CUSTOMIZE_FILE="{{worktree_path}}/.bmad/_cfg/agents/{{base_agent}}.customize.yaml"
+    ```
+
+    <action>Write the generated {{customization_yaml}} content to the file:</action>
+    <action>The file already exists (from git with skip-worktree applied)</action>
+    <action>Overwrite with the generated customization YAML</action>
+
+    <action>Verify the file was written:</action>
+    ```bash
+    head -5 "{{worktree_path}}/.bmad/_cfg/agents/{{base_agent}}.customize.yaml"
+    ```
+
+    <action>Display success:</action>
+    ```
+    Custom agent "{{custom_name}}" ready!
+
+    Customization saved to:
+      {{worktree_path}}/.bmad/_cfg/agents/{{base_agent}}.customize.yaml
+
+    To activate after switching to the nook:
+      /bmad:bmm:agents:{{base_agent_cmd}}
+
+    (Customization is loaded at runtime when agent activates)
+    (Skip-worktree applied - changes stay local to this nook)
+    ```
+
+    <action>Store {{custom_agent_configured}} = true</action>
+  </check>
+
+  <check if="{{customization_yaml}} does NOT exist OR {{wizard_skipped}} is true">
+    <action>Display: "Using default agent configurations..."</action>
+    <action>Store {{custom_agent_configured}} = false</action>
+  </check>
+</step>
+
 <step n="9" goal="Create context.yaml for new nook in BASE workspace">
   <action>Build lineage for new nook:</action>
 
@@ -433,9 +865,29 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
     bmad_bmm_config:
       synced: false
 
+  # Agent Wizard Customization (if used)
+  agent_customization:
+    enabled: {{custom_agent_configured or false}}
+    {{if custom_agent_configured}}
+    base_agent: {{base_agent}}
+    custom_name: "{{custom_name}}"
+    task_intent: |
+      {{task_intent}}
+    activate_command: "/bmad:bmm:agents:{{base_agent_cmd}}"
+    {{else}}
+    base_agent: none
+    custom_name: none
+    task_intent: "No task specified - clean fork"
+    {{end if}}
+
   notes: |
     Nook created from {{current_branch}}.
+    {{if custom_agent_configured}}
+    Custom agent "{{custom_name}}" configured for: {{task_intent_short}}
+    Activate with: /bmad:bmm:agents:{{base_agent_cmd}}
+    {{else}}
     Nook starts clean - no artifacts inherited.
+    {{end if}}
     Run /bmad:th:workflows:nook-restore to load artifacts from parent.
     Run /bmad:th:workflows:nook-sync after making changes to save.
   ```
@@ -446,58 +898,128 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
 <step n="10" goal="Report completion and next steps">
   <action>Calculate lineage depth</action>
 
-  <action>Display completion summary:</action>
+  <check if="{{custom_agent_configured}} is true">
+    <action>Display completion summary WITH custom agent:</action>
 
-  ```
-  Nook Created Successfully!
+    ```
+    ╔═══════════════════════════════════════════════════════════════════╗
+    ║              NOOK CREATED SUCCESSFULLY!                           ║
+    ╠═══════════════════════════════════════════════════════════════════╣
+    ║                                                                   ║
+    ║  Parent Workspace                                                 ║
+    ║     Branch: {{current_branch}}                                    ║
+    ║     Hash:   {{parent_hash}}                                       ║
+    ║     Path:   (current directory or base_path)                      ║
+    ║                                                                   ║
+    ║  New Nook                                                         ║
+    ║     Branch:   {{new_branch}}                                      ║
+    ║     Type:     {{nook_type}}                                       ║
+    ║     Location: {{worktree_path}}                                   ║
+    ║                                                                   ║
+    ╠═══════════════════════════════════════════════════════════════════╣
+    ║                    CUSTOM AGENT READY!                            ║
+    ╠═══════════════════════════════════════════════════════════════════╣
+    ║                                                                   ║
+    ║  Your Specialist: "{{custom_name}}"                               ║
+    ║  Base Agent:      {{base_agent_title}}                            ║
+    ║  Task:            {{task_intent_short}}                           ║
+    ║                                                                   ║
+    ║  To activate your custom agent:                                   ║
+    ║     /bmad:bmm:agents:{{base_agent_cmd}}                           ║
+    ║                                                                   ║
+    ╠═══════════════════════════════════════════════════════════════════╣
+    ║  Lineage ({{lineage_count}} levels):                              ║
+    ║     {{for each entry in lineage}}                                 ║
+    ║     {{index}}. {{entry.branch}} ({{entry.hash}}) - {{entry.type}} ║
+    ║     {{end for}}                                                   ║
+    ║     -> {{new_branch}} (new) - {{nook_type}} <- YOU ARE HERE       ║
+    ╚═══════════════════════════════════════════════════════════════════╝
 
-  Parent Workspace
-     Branch: {{current_branch}}
-     Hash:   {{parent_hash}}
-     Path:   (current directory or base_path)
+    What's in your nook:
+       Config files exist (.bmad/_cfg/agents/, .bmad/bmm/config.yaml)
+         - Custom agent "{{custom_name}}" pre-configured
+         - Skip-worktree applied (changes stay local)
+       docs/ does NOT exist (gitignored)
+         - Run nook-restore if you need docs
 
-  New Nook
-     Branch:   {{new_branch}}
-     Type:     {{nook_type}}
-     Location: {{worktree_path}}
+    Next Steps:
 
-  Lineage ({{lineage_count}} levels):
-     {{for each entry in lineage}}
-     {{index}}. {{entry.branch}} ({{entry.hash}}) - {{entry.type}}
-     {{end for}}
-     -> {{new_branch}} (new) - {{nook_type}} <- YOU ARE HERE
+    1. Switch to the new worktree:
+       cd {{worktree_path}}
 
-  What's in your nook:
-     Config files exist (.bmad/_cfg/agents/, .bmad/bmm/config.yaml)
-       - From git, with skip-worktree (local changes won't show in status)
-     docs/ does NOT exist (gitignored)
-       - Run nook-restore if you need docs
-     .bmad-tracking/ does NOT exist (submodule removed)
-     .gitmodules does NOT exist (removed)
+    2. Activate your custom specialist:
+       /bmad:bmm:agents:{{base_agent_cmd}}
 
-  Next Steps:
+    3. Your agent has pre-loaded context about:
+       "{{task_intent_short}}"
 
-  1. Switch to the new worktree:
-     cd {{worktree_path}}
+    4. To load docs from parent context:
+       /bmad:th:workflows:nook-restore
 
-  2. Config files are ready to use!
-     They exist from git with skip-worktree applied.
-     You can modify them freely - changes stay local.
+    5. When done with the nook:
+       - Commit your code changes
+       - Run /bmad:th:workflows:nook-sync to save artifacts
+       - Merge back: git checkout {{current_branch}} && git merge {{new_branch}}
+       - Remove worktree: git worktree remove "{{worktree_path}}"
 
-  3. To load docs from parent context:
-     /bmad:th:workflows:nook-restore
+    Start a new AI session in the nook and summon your specialist!
+    ```
+  </check>
 
-  4. When done with the nook:
-     - Commit your code changes
-     - Run /bmad:th:workflows:nook-sync to save artifacts
-     - Merge back: git checkout {{current_branch}} && git merge {{new_branch}}
-     - Remove worktree: git worktree remove "{{worktree_path}}"
+  <check if="{{custom_agent_configured}} is NOT true">
+    <action>Display completion summary WITHOUT custom agent:</action>
 
-  5. To return to parent workspace:
-     cd {{base_path}}
+    ```
+    Nook Created Successfully!
 
-  Start a new AI session in the nook for maximum context clarity!
-  ```
+    Parent Workspace
+       Branch: {{current_branch}}
+       Hash:   {{parent_hash}}
+       Path:   (current directory or base_path)
+
+    New Nook
+       Branch:   {{new_branch}}
+       Type:     {{nook_type}}
+       Location: {{worktree_path}}
+
+    Lineage ({{lineage_count}} levels):
+       {{for each entry in lineage}}
+       {{index}}. {{entry.branch}} ({{entry.hash}}) - {{entry.type}}
+       {{end for}}
+       -> {{new_branch}} (new) - {{nook_type}} <- YOU ARE HERE
+
+    What's in your nook:
+       Config files exist (.bmad/_cfg/agents/, .bmad/bmm/config.yaml)
+         - From git, with skip-worktree (local changes won't show in status)
+       docs/ does NOT exist (gitignored)
+         - Run nook-restore if you need docs
+       .bmad-tracking/ does NOT exist (submodule removed)
+       .gitmodules does NOT exist (removed)
+
+    Next Steps:
+
+    1. Switch to the new worktree:
+       cd {{worktree_path}}
+
+    2. Config files are ready to use!
+       They exist from git with skip-worktree applied.
+       You can modify them freely - changes stay local.
+
+    3. To load docs from parent context:
+       /bmad:th:workflows:nook-restore
+
+    4. When done with the nook:
+       - Commit your code changes
+       - Run /bmad:th:workflows:nook-sync to save artifacts
+       - Merge back: git checkout {{current_branch}} && git merge {{new_branch}}
+       - Remove worktree: git worktree remove "{{worktree_path}}"
+
+    5. To return to parent workspace:
+       cd {{base_path}}
+
+    Start a new AI session in the nook for maximum context clarity!
+    ```
+  </check>
 </step>
 
 </workflow>
@@ -553,4 +1075,40 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
 - Large directories would bloat git history
 - User explicitly restores if needed
 - Single source of truth in base workspace tracking folder
+
+**Agent Wizard Context Integration:**
+The Agent Wizard uses nook-context-analyst to gather broader context before creating custom agents:
+
+1. **Pre-Creation Context Gathering** (step 5a-context):
+   - Invokes nook-context-analyst agent before agent selection
+   - Traces lineage and reads parent context.yaml summaries
+   - Extracts inherited decisions, constraints, architecture patterns
+   - Filters context relevant to the user's task intent
+
+2. **Context Embedding in Memories**:
+   - Task intent is the first memory entry
+   - Inherited decisions prefixed with "INHERITED:"
+   - Constraints prefixed with "CONSTRAINT:"
+   - Parent findings prefixed with "PARENT CONTEXT:"
+   - Full lineage chain included for traceability
+
+3. **Context Analyst Availability**:
+   - Every custom agent includes a critical action pointing to nook-context-analyst
+   - Agents can invoke it for deeper big-picture understanding
+   - Enables agents to self-orient when facing unfamiliar constraints
+
+4. **Context Flow**:
+   ```
+   Parent Nooks → nook-sync → context.yaml (with summary)
+                      ↓
+   nook-fork → nook-context-analyst → lineage_context
+                      ↓
+   Agent Wizard → embeds in memories + critical_actions
+                      ↓
+   Custom Agent → pre-loaded with inherited context
+                  + knows to call analyst for more
+   ```
+
+This ensures specialist agents understand not just their immediate task,
+but also the broader project context they're operating within.
 </notes>

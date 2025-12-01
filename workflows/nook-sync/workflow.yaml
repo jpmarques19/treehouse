@@ -20,3 +20,4 @@ outputs:
   tracking_path: "Path in base workspace where context was saved"
   synced_paths: "List of paths that were synced"
   context_yaml: "Updated context manifest"
+  nook_summary: "AI-generated summary (purpose, insights, decisions, status, blockers, next_steps)"
