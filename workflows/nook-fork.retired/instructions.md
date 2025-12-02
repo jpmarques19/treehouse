@@ -270,7 +270,7 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
   <check if="user presses Enter / provides empty input">
     <action>Display: "Skipping Agent Wizard - creating clean nook..."</action>
     <action>Set {{wizard_skipped}} = true</action>
-    <action>Skip to step 6 (worktree folder validation)</action>
+    <goto step="6" reason="User skipped Agent Wizard"/>
   </check>
 </step>
 
@@ -303,11 +303,39 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
   </critical>
 
   <action>Store the context analyst's response as {{lineage_context}}</action>
-  <action>Extract key elements:</action>
-  - {{inherited_decisions}} - decisions from parent nooks
-  - {{project_constraints}} - constraints that apply
-  - {{architecture_context}} - relevant architecture info
-  - {{parent_purpose}} - what parent nooks were working on
+
+  <check if="nook-context-analyst fails, times out, or returns empty/error">
+    <action>Display:</action>
+    ```
+    Note: Could not gather full lineage context.
+    This may happen if:
+    - No parent context.yaml files exist yet
+    - The lineage is shallow (close to base workspace)
+    - The context analyst encountered an error
+
+    Proceeding with task intent only - your agent will still be customized
+    for "{{task_intent}}" but without inherited context.
+    ```
+    <action>Set {{lineage_context}} to minimal defaults:</action>
+    ```yaml
+    lineage_context:
+      brief_summary: "No inherited context available"
+      inherited: []
+      constraints: []
+      parent_findings: null
+      branch_chain: "{{current_branch}} -> {{new_branch}}"
+      memory_count: 0
+    ```
+    <action>Continue to step 5b (agent selection still works without lineage)</action>
+  </check>
+
+  <check if="nook-context-analyst succeeds">
+    <action>Extract key elements:</action>
+    - {{inherited_decisions}} - decisions from parent nooks
+    - {{project_constraints}} - constraints that apply
+    - {{architecture_context}} - relevant architecture info
+    - {{parent_purpose}} - what parent nooks were working on
+  </check>
 
   <action>Display summary to user:</action>
   ```
@@ -367,6 +395,16 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
 
 <step n="5c" goal="Agent Wizard - Generate Custom Agent Profile">
   <action>Based on {{task_intent}} and {{base_agent}}, generate customization:</action>
+
+  <critical>
+  The template below is a STRUCTURAL GUIDE for generating YAML content.
+  The {{for each}} and {{if}} blocks are pseudo-code indicating iteration/conditionals.
+  Generate actual YAML by:
+  1. Reading the structure
+  2. Replacing placeholders with real generated values
+  3. Expanding loops with actual items
+  4. Evaluating conditionals based on available data
+  </critical>
 
   <customization_generation>
     Generate the following customization YAML based on the task intent:
@@ -897,6 +935,15 @@ bugfix/c9d1-deadlock-retry        <- Bugfix nook from c9d1 (hash: jf2b)
 
 <step n="10" goal="Report completion and next steps">
   <action>Calculate lineage depth</action>
+
+  <action>Set workflow outputs (as defined in workflow.yaml):</action>
+  ```
+  outputs:
+    new_branch: {{new_branch}}
+    worktree_path: {{worktree_path}}
+    custom_agent: {{custom_name}} (or "none" if wizard was skipped)
+    lineage_context: {{lineage_context.brief_summary}} (or "none" if not gathered)
+  ```
 
   <check if="{{custom_agent_configured}} is true">
     <action>Display completion summary WITH custom agent:</action>
