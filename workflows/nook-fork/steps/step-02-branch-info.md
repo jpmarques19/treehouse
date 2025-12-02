@@ -49,6 +49,14 @@ git rev-parse --short=4 HEAD
 
 Store result as `{{parent_hash}}`
 
+### 2b. Get Current Worktree Path
+
+```bash
+pwd
+```
+
+Store result as `{{parent_worktree_path}}` (the path of the current/parent worktree where YOLO agent will run)
+
 ### 3. Check Tracking Folder Status
 
 ```bash

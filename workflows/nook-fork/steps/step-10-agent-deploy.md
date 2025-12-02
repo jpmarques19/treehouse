@@ -52,44 +52,50 @@ Complete agent deployment based on agent_mode: move YOLO-created files from pare
   - If still running: Wait for completion (check Task tool status)
   - If completed: Proceed with file move
 
-  <action>Verify agent was created in parent:</action>
+  <action>Verify agent was created in parent worktree:</action>
   ```bash
-  test -d "{{base_path}}/.bmad/custom/src/agents/{{agent_name}}" && echo "FOUND" || echo "NOT_FOUND"
+  test -d "{{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}" && echo "FOUND" || echo "NOT_FOUND"
   ```
 
-  <check if="agent NOT_FOUND in parent">
+  <check if="agent NOT_FOUND in parent worktree">
     <action>Display error:</action>
     ```
-    WARNING: YOLO agent not found in parent workspace
+    WARNING: YOLO agent not found in parent worktree
 
-    Expected: {{base_path}}/.bmad/custom/src/agents/{{agent_name}}/
+    Expected: {{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}/
 
     The YOLO subagent may have:
     - Failed to create the agent
     - Used a different name
-    - Written to a different location
+    - Written to a different location (e.g., _cfg/agents instead of custom/src/agents)
 
     Checking for any agents created during this session...
     ```
 
-    <action>List agents in parent:</action>
+    <action>List agents in parent worktree (correct location):</action>
     ```bash
-    ls -la "{{base_path}}/.bmad/custom/src/agents/" 2>/dev/null || echo "No agents folder"
+    ls -la "{{parent_worktree_path}}/.bmad/custom/src/agents/" 2>/dev/null || echo "No custom/src/agents folder"
     ```
 
-    <action>If agent found with different name, update {{agent_name}} and continue</action>
-    <action>If no agent found, display warning and continue without agent</action>
+    <action>Also check wrong location (_cfg/agents) for diagnostic:</action>
+    ```bash
+    ls -la "{{parent_worktree_path}}/.bmad/_cfg/agents/" 2>/dev/null | grep -i "{{agent_name}}" || echo "Not in _cfg either"
+    ```
+
+    <action>If agent found with different name in correct location, update {{agent_name}} and continue</action>
+    <action>If agent found in wrong location (_cfg), display error explaining the YOLO subagent wrote to wrong path</action>
+    <action>If no agent found anywhere, display warning and continue without agent</action>
   </check>
 
-  <check if="agent FOUND in parent">
+  <check if="agent FOUND in parent worktree">
     <action>Create target directory in nook:</action>
     ```bash
     mkdir -p "{{worktree_path}}/.bmad/custom/src/agents"
     ```
 
-    <action>MOVE agent files from parent to nook:</action>
+    <action>MOVE agent folder from parent worktree to nook:</action>
     ```bash
-    mv "{{base_path}}/.bmad/custom/src/agents/{{agent_name}}" \
+    mv "{{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}" \
        "{{worktree_path}}/.bmad/custom/src/agents/"
     ```
 

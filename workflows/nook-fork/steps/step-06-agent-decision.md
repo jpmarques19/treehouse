@@ -200,12 +200,35 @@ Execute each step reflectively in batch mode:
 
 **Agent Name:** {{agent_name}}
 
-**Output Location:** `.bmad/custom/src/agents/{{agent_name}}/`
+### OUTPUT LOCATION (CRITICAL - DO NOT DEVIATE)
+
+You MUST write ALL output files to THIS EXACT location in the CURRENT worktree:
+
+```
+.bmad/custom/src/agents/{{agent_name}}/
+```
+
+Create this directory structure:
+```
+.bmad/custom/src/agents/{{agent_name}}/
+├── {{agent_name}}.agent.yaml          # REQUIRED: Main agent file
+├── {{agent_name}}-sidecar/            # OPTIONAL: For expert agents
+│   ├── memories.md
+│   ├── instructions.md
+│   └── knowledge/
+│       └── [knowledge files].md
+└── info-and-installation-guide.md     # OPTIONAL: Installation notes
+```
+
+⚠️ DO NOT write to `.bmad/_cfg/agents/` - that is for compiled output only
+⚠️ DO NOT write `.md` files directly - agent source must be `.agent.yaml`
+⚠️ The folder name MUST match the agent filename ({{agent_name}})
 
 ### REQUIRED OUTPUT
 
-1. `{{agent_name}}.agent.yaml` - Complete BMAD-compliant agent source
-2. `{{agent_name}}-sidecar/knowledge/` - If lineage context is substantial
+1. Create folder: `.bmad/custom/src/agents/{{agent_name}}/`
+2. Write main file: `.bmad/custom/src/agents/{{agent_name}}/{{agent_name}}.agent.yaml`
+3. For expert agents with substantial context, also create sidecar folder
 
 ### AGENT REQUIREMENTS
 
@@ -219,7 +242,7 @@ The generated agent MUST include:
 
 When done, return brief summary:
 - Agent name created
-- Files generated
+- Exact file paths written (list each file)
 - Ready for: npx bmad-method@alpha agent-install
 "
 ```
