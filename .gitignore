@@ -1,4 +1,4 @@
 # Project-specific configuration
 # Each project sets its own base_workspace_path, worktrees_folder, etc.
 # Use config.example.yaml as template
-config.yaml
+
