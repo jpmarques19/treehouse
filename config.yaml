@@ -38,6 +38,15 @@ gitignore_paths:
   - .bmad/custom/agents
   - .claude/commands/bmad/custom
 
+# Skip-worktree paths (applied during nook-fork)
+# Files marked skip-worktree won't show in git status when modified locally.
+# Use for config files that need local customization per nook.
+# Supports both file paths and folder patterns (folder/* applies to all files in folder)
+skip_worktree_paths:
+  - .bmad/_cfg
+  - .bmad/bmm/config.yaml
+  - .bmad/custom/src
+
 # Auto-commit tracking changes after sync
 # When true: nook-sync automatically commits submodule + parent pointer
 # When false: user must manually commit (allows batching multiple syncs)
