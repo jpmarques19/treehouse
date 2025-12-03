@@ -121,6 +121,12 @@ Establishes the current worktree as the base workspace:
 ```
 
 Creates a focused worktree for dedicated work:
+- **🆕 Agent Wizard** - Optionally creates a custom AI agent specialized for your task
+  - **⚡ YOLO mode**: Quick auto-generation with lineage context embedded—let the magic happen!
+  - **🎨 Full mode**: Interactive step-by-step customization—craft your perfect assistant
+  - 🧬 Agent inherits parent nook decisions and constraints
+  - 🎯 Pre-loaded with task-specific workflows and expertise
+  - ✨ Ready to compile and use immediately in your nook
 - Prompts for nook type (`explore/`, `spike/`, `bugfix/`, `discovery/`, `feature/`, `experiment/`, `hotfix/`)
 - Creates new git worktree with hash-based branch name
 - Applies skip-worktree to config files, submodule pointer, and `.gitmodules`
