@@ -38,51 +38,52 @@ Display the complete workspace tree with status indicators and present the menu 
 <critical>Do NOT show internal processing. Display ONLY this formatted output:</critical>
 
 ```
-Workspace Lineage
+🌳 Workspace Lineage
 
 base {{base_path}}
-here {{current_branch}} . {{current_hash}}
+here {{current_branch}} · {{current_hash}}
 
 {{tree_output}}
 
 {{if orphan_worktrees exist}}
 ? orphan worktrees
 {{for each orphan}}
-  {{orphan.path}} -> {{orphan.branch}}
+  {{orphan.path}} → {{orphan.branch}}
 {{end for}}
 {{end if}}
 
-{{total}} tracked  . {{active_count}} active  o {{inactive_count}} inactive
-! {{stale_count}} stale  x {{orphan_tracking_count}} orphan  ? {{orphan_wt_count}} orphan-wt
----------------------------------------------
-n navigate    s sleep    d delete
-p prune       r refresh  q quit
+─────────────────────────────────────────────────
+ {{total}} tracked   ● {{active_count}} active   ○ {{inactive_count}} inactive
+ ! {{stale_count}} stale      ✗ {{orphan_tracking_count}} orphan    ? {{orphan_wt_count}} orphan-wt
+─────────────────────────────────────────────────
+ [n] navigate   [s] sleep    [d] delete
+ [p] prune      [r] refresh  [q] quit
 ```
 
 ### 2. Tree Output Format
 
 **Status Icons:**
-- `.` = active (has worktree + branch exists)
-- `o` = inactive (no worktree, branch exists)
-- `x` = orphan-tracking (context exists, but git branch deleted)
-- `!` = stale (>14 days since sync) - replaces . or o
+- `●` = active (has worktree + branch exists)
+- `○` = inactive (no worktree, branch exists)
+- `✗` = orphan-tracking (context exists, but git branch deleted)
+- `!` = stale (>14 days since sync) - replaces ● or ○
 - `?` = orphan-worktree (worktree exists, no tracking)
-- `<-` = you are here (current branch marker)
+- `←` = you are here (current branch marker)
 
 **Tree Structure:**
 
 ```
-. main a1b2                                      2 days ago
-|
-+-- . discovery/peek-a-box-mvp 7bee  <-          today
-|  |
-|  +-- o explore/7bee-provision-race c3d4        5 days ago
-|  |  |
-|  |  +-- ! spike/c3d4-mutex-fix e5f6            18 days ago
-|  |
-|  +-- o bugfix/7bee-mqtt-reconnect g7h8         7 days ago
-|
-+-- o feature/a1b2-auth-system i9j0              7 days ago
+● main a1b2                                      2 days ago
+│
+├─ ● discovery/peek-a-box-mvp 7bee  ←            today
+│  │
+│  ├─ ○ explore/7bee-provision-race c3d4         5 days ago
+│  │  │
+│  │  └─ ! spike/c3d4-mutex-fix e5f6             18 days ago
+│  │
+│  └─ ○ bugfix/7bee-mqtt-reconnect g7h8          7 days ago
+│
+└─ ○ feature/a1b2-auth-system i9j0               7 days ago
 ```
 
 **Time Display:**
@@ -91,6 +92,41 @@ p prune       r refresh  q quit
 - "X days ago" for 2-30 days
 - "X weeks ago" for 31-60 days
 - "X months ago" for 61+ days
+
+**Summary Grid Format (CRITICAL - must be aligned):**
+
+The summary section MUST use fixed-width columns for grid alignment:
+
+```
+─────────────────────────────────────────────────
+ COL1 (width 14)  COL2 (width 13)  COL3 (width 14)
+─────────────────────────────────────────────────
+```
+
+Row 1 format (pad numbers to 2 chars):
+- Column 1: `{total:>2} tracked` padded to 14 chars
+- Column 2: `● {active:>2} active` padded to 13 chars
+- Column 3: `○ {inactive:>2} inactive` padded to 14 chars
+
+Row 2 format:
+- Column 1: `! {stale:>2} stale` padded to 14 chars
+- Column 2: `✗ {orphan:>2} orphan` padded to 13 chars
+- Column 3: `? {orphan_wt:>2} orphan-wt` padded to 14 chars
+
+Menu row format (same columns):
+- Column 1: `[n] navigate` padded to 14 chars
+- Column 2: `[s] sleep` padded to 13 chars
+- Column 3: `[d] delete` padded to 14 chars
+
+Example with actual alignment:
+```
+─────────────────────────────────────────────────
+ 11 tracked     ● 11 active    ○  0 inactive
+ !  0 stale     ✗  0 orphan    ?  2 orphan-wt
+─────────────────────────────────────────────────
+ [n] navigate   [s] sleep      [d] delete
+ [p] prune      [r] refresh    [q] quit
+```
 
 ### 3. Wait for Menu Selection
 

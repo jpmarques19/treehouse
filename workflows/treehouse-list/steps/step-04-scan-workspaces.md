@@ -44,12 +44,12 @@ find "{{base_path}}/.bmad-tracking" -name "context.yaml" -type f 2>/dev/null
   <action>Display:</action>
 
 ```
-Workspace Lineage
+🌳 Workspace Lineage
 
 no workspaces tracked yet
 
 base {{base_path}}
-here {{current_branch}} . {{current_hash}}
+here {{current_branch}} · {{current_hash}}
 
 run /bmad:th:workflows:nook-sync to sync current context
 ```
