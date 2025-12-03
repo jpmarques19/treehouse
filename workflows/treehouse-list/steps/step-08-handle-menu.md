@@ -56,14 +56,14 @@ enter number or q to cancel:
     <check if="selected branch has active worktree">
       <action>Display:</action>
       ```
-      -> cd {{worktree_path}}
+      → cd {{worktree_path}}
       ```
     </check>
 
     <check if="selected branch is inactive (no worktree)">
       <action>Display:</action>
       ```
-      o {{branch_name}} has no worktree
+      ○ {{branch_name}} has no worktree
 
       to reactivate:
         git worktree add "{{suggested_path}}" "{{branch_name}}"
@@ -86,7 +86,7 @@ enter number or q to cancel:
 ```
 select branch to sleep (removes worktree, keeps tracking + branch):
 {{for each ACTIVE workspace with index}}
-{{index}}. . {{workspace.branch}}
+{{index}}. ● {{workspace.branch}}
 {{end for}}
 
 enter number or q to cancel:
@@ -115,9 +115,9 @@ enter number or q to cancel:
       sleep {{selected_branch}}?
 
       this will:
-        remove worktree folder
-        keep git branch
-        keep tracking data
+        ✓ remove worktree folder
+        ✓ keep git branch
+        ✓ keep tracking data
 
       to reactivate later:
         git worktree add "{{worktree_path}}" "{{branch}}"
@@ -136,7 +136,7 @@ enter number or q to cancel:
 
         <action>Display:</action>
         ```
-        o {{selected_branch}} is now inactive
+        ○ {{selected_branch}} is now inactive
         ```
 
         <action>Rescan and redisplay (load `{refreshStepFile}`)</action>
@@ -255,7 +255,7 @@ Generated with Claude Code"
     {{if orphan_wt_count > 0}}
     ? orphan worktrees:
     {{for each orphan_worktree}}
-      {{orphan.path}} -> {{orphan.branch}}
+      {{orphan.path}} → {{orphan.branch}}
     {{end for}}
     {{end if}}
     {{if stale_count > 0}}

@@ -44,9 +44,9 @@ test -d "{{base_path}}/.bmad-tracking" && echo "EXISTS" || echo "MISSING"
   <action>Display error:</action>
 
 ```
-Workspace Lineage
+🌳 Workspace Lineage
 
-tracking folder not found
+⚠ tracking folder not found
 
 base     {{base_path}}
 expected {{base_path}}/.bmad-tracking/

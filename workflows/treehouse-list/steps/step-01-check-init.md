@@ -45,9 +45,9 @@ grep "^base_workspace_path:" .bmad/th/config.yaml
   <action>Display initialization prompt:</action>
 
 ```
-Workspace Lineage
+🌳 Workspace Lineage
 
-not initialized
+⚠ not initialized
 
 run /bmad:th:workflows:treehouse-init first
 
