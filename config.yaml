@@ -4,7 +4,7 @@
 
 # Core Configuration Values
 bmad_folder: .bmad
-user_name:
+user_name: Joao
 communication_language: English
 document_output_language: English
 
@@ -28,6 +28,7 @@ sync_paths:
   - .bmad/_cfg
   - .bmad/bmm/config.yaml
   - .bmad/custom/src
+  - bmad/custom/src 
 
 # Gitignored paths (added to .gitignore during treehouse-init)
 # Gitignoring here means you won't need to commit after sync/restore.
@@ -36,6 +37,7 @@ sync_paths:
 gitignore_paths:
   - docs
   - .bmad/custom/agents
+  - bmad/custom/agents
   - .claude/commands/bmad/custom
 
 # Skip-worktree paths (applied during nook-fork)
@@ -46,6 +48,7 @@ skip_worktree_paths:
   - .bmad/_cfg
   - .bmad/bmm/config.yaml
   - .bmad/custom/src
+  - bmad/custom/src
 
 # Auto-commit tracking changes after sync
 # When true: nook-sync automatically commits submodule + parent pointer

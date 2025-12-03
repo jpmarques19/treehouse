@@ -205,12 +205,12 @@ Execute each step reflectively in batch mode:
 You MUST write ALL output files to THIS EXACT location in the CURRENT worktree:
 
 ```
-.bmad/custom/src/agents/{{agent_name}}/
+bmad/agents/{{agent_name}}/
 ```
 
 Create this directory structure:
 ```
-.bmad/custom/src/agents/{{agent_name}}/
+bmad/agents/{{agent_name}}/
 ├── {{agent_name}}.agent.yaml          # REQUIRED: Main agent file
 ├── {{agent_name}}-sidecar/            # OPTIONAL: For expert agents
 │   ├── memories.md
@@ -220,14 +220,14 @@ Create this directory structure:
 └── info-and-installation-guide.md     # OPTIONAL: Installation notes
 ```
 
-⚠️ DO NOT write to `.bmad/_cfg/agents/` - that is for compiled output only
+⚠️ DO NOT write to `.bmad/custom/agents/` - that is for compiled output only
 ⚠️ DO NOT write `.md` files directly - agent source must be `.agent.yaml`
 ⚠️ The folder name MUST match the agent filename ({{agent_name}})
 
 ### REQUIRED OUTPUT
 
-1. Create folder: `.bmad/custom/src/agents/{{agent_name}}/`
-2. Write main file: `.bmad/custom/src/agents/{{agent_name}}/{{agent_name}}.agent.yaml`
+1. Create folder: `bmad/agents/{{agent_name}}/`
+2. Write main file: `bmad/agents/{{agent_name}}/{{agent_name}}.agent.yaml`
 3. For expert agents with substantial context, also create sidecar folder
 
 ### AGENT REQUIREMENTS
