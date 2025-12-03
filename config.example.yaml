@@ -31,16 +31,31 @@ worktrees_folder: "/home/user/bmad-worktrees"
 # Synced TO base_workspace_path/.bmad-tracking/{branch}/ during nook-sync
 # Restored FROM base_workspace_path/.bmad-tracking/{branch}/ during nook-restore
 sync_paths:
-  - docs
-  - .bmad/_cfg/agents
+  - .bmad/_cfg
   - .bmad/bmm/config.yaml
+  - .bmad/custom/src
+  - docs
+  - bmad
 
 # Gitignored paths (added to .gitignore during treehouse-init)
 # Gitignoring here means you won't need to commit after sync/restore.
 # Only .bmad-tracking/ submodule in base workspace requires commits.
 # Remove paths from here if you prefer to commit them locally.
 gitignore_paths:
+  - .bmad/custom/agents
+  - .claude/commands/bmad/custom
   - docs
+  - bmad
+
+# Skip-worktree paths (applied during nook-fork)
+# Files marked skip-worktree won't show in git status when modified locally.
+# Use for config files that need local customization per nook.
+# Supports both file paths and folder patterns (folder/* applies to all files in folder)
+skip_worktree_paths:
+  - .bmad/_cfg
+  - .bmad/bmm/config.yaml
+  - .bmad/custom/src
+  - bmad
 
 # Auto-commit tracking changes after sync
 # When true: nook-sync automatically commits submodule + parent pointer
