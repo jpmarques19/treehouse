@@ -6,7 +6,7 @@
 
 ---
 
-⚠️ **EXPERIMENTAL - USE AT YOUR OWN RISK**
+⚠️ **EXPERIMENTAL - USE WITH CAUTION**
 
 This module is a **work in progress** with very narrow testing:
 - Tested exclusively with **Claude Code + Opus 4.5**
@@ -14,7 +14,7 @@ This module is a **work in progress** with very narrow testing:
 - May leave orphaned worktrees or unexpected git state if workflows are interrupted
 - Not battle-tested across different environments or git versions
 
-**If you're not comfortable with low level git operations, proceed with caution.**
+**Recommended Knowledge: low level git operations**
 
 ---
 
@@ -121,6 +121,12 @@ Establishes the current worktree as the base workspace:
 ```
 
 Creates a focused worktree for dedicated work:
+- **🆕 Agent Wizard** - Optionally creates a custom AI agent specialized for your task
+  - **⚡ YOLO mode**: Quick auto-generation with lineage context embedded—let the magic happen!
+  - **🎨 Full mode**: Interactive step-by-step customization—craft your perfect assistant
+  - 🧬 Agent inherits parent nook decisions and constraints
+  - 🎯 Pre-loaded with task-specific workflows and expertise
+  - ✨ Ready to compile and use immediately in your nook
 - Prompts for nook type (`explore/`, `spike/`, `bugfix/`, `discovery/`, `feature/`, `experiment/`, `hotfix/`)
 - Creates new git worktree with hash-based branch name
 - Applies skip-worktree to config files, submodule pointer, and `.gitmodules`
@@ -243,7 +249,7 @@ auto_commit_tracking: false
 
 ## Why "Treehouse"?
 
-The name reflects the core architecture: your workspace is like a **treehouse** - an elevated, cozy space built on the tree (git). **Nooks** are the individual spaces where focused work happens, each sitting on top of a git branch. The metaphor is intuitive: trees have branches, nooks are cozy isolated spaces, and the whole system provides a safe place to build and experiment.
+The name reflects the core architecture: your workspace is like a **treehouse** - an elevated, cozy space built on the tree (git). **Nooks** are the individual spaces where focused work happens, each sitting on top of a git branch.
 
 ---
 

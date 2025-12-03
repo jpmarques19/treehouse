@@ -61,7 +61,7 @@ Display comprehensive success summary with clear next steps, including agent com
 ╠═══════════════════════════════════════════════════════════════════╣
 ║                                                                   ║
 ║  Agent source: {{custom_agent}}                                   ║
-║  Location: bmad/agents/{{custom_agent}}/                          ║
+║  Location: .bmad/custom/src/agents/{{custom_agent}}/             ║
 ║  Mode: {{agent_mode}}                                             ║
 ║                                                                   ║
 ║  To activate your agent, run these commands in the nook:          ║

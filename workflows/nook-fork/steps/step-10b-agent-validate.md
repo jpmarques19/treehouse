@@ -53,7 +53,7 @@ Validate agent source created by Full wizard mode against BMAD checklist. Fix an
 
 <action>Read the generated agent YAML from nook:</action>
 ```bash
-cat "{{worktree_path}}/bmad/agents/{{custom_agent}}/{{custom_agent}}.agent.yaml"
+cat "{{worktree_path}}/.bmad/custom/src/agents/{{custom_agent}}/{{custom_agent}}.agent.yaml"
 ```
 
 <action>Store content for validation</action>
@@ -119,7 +119,7 @@ cat "{{worktree_path}}/bmad/agents/{{custom_agent}}/{{custom_agent}}.agent.yaml"
   ```
   ❌ AGENT VALIDATION FAILED
 
-  Issues found in {{worktree_path}}/bmad/agents/{{custom_agent}}/
+  Issues found in {{worktree_path}}/.bmad/custom/src/agents/{{custom_agent}}/
 
   {{list_issues_with_details}}
 
@@ -149,7 +149,7 @@ cat "{{worktree_path}}/bmad/agents/{{custom_agent}}/{{custom_agent}}.agent.yaml"
   <action>Write corrected file:</action>
   ```bash
   # Write corrected YAML to:
-  # {{worktree_path}}/bmad/agents/{{custom_agent}}/{{custom_agent}}.agent.yaml
+  # {{worktree_path}}/.bmad/custom/src/agents/{{custom_agent}}/{{custom_agent}}.agent.yaml
   ```
 
   <action>Display: "Issues fixed. Re-validating..."</action>
@@ -159,7 +159,7 @@ cat "{{worktree_path}}/bmad/agents/{{custom_agent}}/{{custom_agent}}.agent.yaml"
 <check if="user selects S (Skip)">
   <action>Remove agent from nook:</action>
   ```bash
-  rm -rf "{{worktree_path}}/bmad/agents/{{custom_agent}}"
+  rm -rf "{{worktree_path}}/.bmad/custom/src/agents/{{custom_agent}}"
   ```
   <action>Set {{custom_agent}} = "none"</action>
   <action>Set {{agent_mode}} = "none"</action>
@@ -174,7 +174,7 @@ cat "{{worktree_path}}/bmad/agents/{{custom_agent}}/{{custom_agent}}.agent.yaml"
 
   To investigate:
     cd {{worktree_path}}
-    cat bmad/agents/{{custom_agent}}/{{custom_agent}}.agent.yaml
+    cat .bmad/custom/src/agents/{{custom_agent}}/{{custom_agent}}.agent.yaml
 
   To retry agent creation:
     /bmad:bmb:workflows:create-agent

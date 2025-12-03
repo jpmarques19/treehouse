@@ -56,7 +56,7 @@ Deploy agent based on agent_mode. For YOLO: validate source BEFORE moving (fix i
 
   <action>Verify agent was created in parent worktree:</action>
   ```bash
-  test -d "{{parent_worktree_path}}/bmad/agents/{{agent_name}}" && echo "FOUND" || echo "NOT_FOUND"
+  test -d "{{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}" && echo "FOUND" || echo "NOT_FOUND"
   ```
 
   <check if="agent NOT_FOUND in parent worktree">
@@ -64,28 +64,28 @@ Deploy agent based on agent_mode. For YOLO: validate source BEFORE moving (fix i
     ```
     WARNING: YOLO agent not found in parent worktree
 
-    Expected: {{parent_worktree_path}}/bmad/agents/{{agent_name}}/
+    Expected: {{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}/
 
     The YOLO subagent may have:
     - Failed to create the agent
     - Used a different name
-    - Written to a different location (e.g., .bmad/custom/agents instead of bmad/agents)
+    - Written to a different location (e.g., .bmad/custom/agents instead of .bmad/custom/src/agents)
 
     Checking for any agents created during this session...
     ```
 
     <action>List agents in parent worktree (correct location):</action>
     ```bash
-    ls -la "{{parent_worktree_path}}/bmad/agents/" 2>/dev/null || echo "No bmad/agents folder"
+    ls -la "{{parent_worktree_path}}/.bmad/custom/src/agents/" 2>/dev/null || echo "No .bmad/custom/src/agents folder"
     ```
 
     <action>Also check wrong location (.bmad/custom/agents) for diagnostic:</action>
     ```bash
-    ls -la "{{parent_worktree_path}}/.bmad/custom/agents/" 2>/dev/null | grep -i "{{agent_name}}" || echo "Not in .bmad/custom either"
+    ls -la "{{parent_worktree_path}}/.bmad/custom/agents/" 2>/dev/null | grep -i "{{agent_name}}" || echo "Not in .bmad/custom/agents either"
     ```
 
     <action>If agent found with different name in correct location, update {{agent_name}} and continue</action>
-    <action>If agent found in wrong location (.bmad/custom), display error explaining the YOLO subagent wrote to wrong path</action>
+    <action>If agent found in wrong location (.bmad/custom/agents), display error explaining the YOLO subagent wrote to compiled output path instead of source path</action>
     <action>If no agent found anywhere, set {{custom_agent}} = "none" and continue without agent</action>
   </check>
 
@@ -97,7 +97,7 @@ Deploy agent based on agent_mode. For YOLO: validate source BEFORE moving (fix i
 
     <action>Read agent source from parent worktree:</action>
     ```bash
-    cat "{{parent_worktree_path}}/bmad/agents/{{agent_name}}/{{agent_name}}.agent.yaml"
+    cat "{{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}/{{agent_name}}.agent.yaml"
     ```
 
     <action>Run validation against {validationChecklist}:</action>
@@ -138,7 +138,7 @@ Deploy agent based on agent_mode. For YOLO: validate source BEFORE moving (fix i
       ```
       ❌ YOLO AGENT VALIDATION FAILED
 
-      Issues found in {{parent_worktree_path}}/bmad/agents/{{agent_name}}/
+      Issues found in {{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}/
 
       {{list_issues_with_details}}
 
@@ -166,7 +166,7 @@ Deploy agent based on agent_mode. For YOLO: validate source BEFORE moving (fix i
       <action>Write corrected file to parent worktree:</action>
       ```bash
       # Write corrected YAML to:
-      # {{parent_worktree_path}}/bmad/agents/{{agent_name}}/{{agent_name}}.agent.yaml
+      # {{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}/{{agent_name}}.agent.yaml
       ```
 
       <action>Display: "Issues fixed. Re-validating..."</action>
@@ -176,7 +176,7 @@ Deploy agent based on agent_mode. For YOLO: validate source BEFORE moving (fix i
     <check if="user selects S (Skip)">
       <action>Remove agent from parent worktree:</action>
       ```bash
-      rm -rf "{{parent_worktree_path}}/bmad/agents/{{agent_name}}"
+      rm -rf "{{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}"
       ```
       <action>Set {{custom_agent}} = "none"</action>
       <action>Set {{agent_mode}} = "none"</action>
@@ -190,7 +190,7 @@ Deploy agent based on agent_mode. For YOLO: validate source BEFORE moving (fix i
       Workflow aborted. The nook worktree was created but agent deployment failed.
 
       To investigate the YOLO agent:
-        cat {{parent_worktree_path}}/bmad/agents/{{agent_name}}/{{agent_name}}.agent.yaml
+        cat {{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}/{{agent_name}}.agent.yaml
 
       To remove the nook:
         git worktree remove {{worktree_path}}
@@ -203,18 +203,18 @@ Deploy agent based on agent_mode. For YOLO: validate source BEFORE moving (fix i
     <check if="validation passed (or fixed and re-validated)">
       <action>Create target directory in nook:</action>
       ```bash
-      mkdir -p "{{worktree_path}}/bmad/agents"
+      mkdir -p "{{worktree_path}}/.bmad/custom/src/agents"
       ```
 
       <action>MOVE agent folder from parent worktree to nook:</action>
       ```bash
-      mv "{{parent_worktree_path}}/bmad/agents/{{agent_name}}" \
-         "{{worktree_path}}/bmad/agents/"
+      mv "{{parent_worktree_path}}/.bmad/custom/src/agents/{{agent_name}}" \
+         "{{worktree_path}}/.bmad/custom/src/agents/"
       ```
 
       <action>Verify move succeeded:</action>
       ```bash
-      test -d "{{worktree_path}}/bmad/agents/{{agent_name}}" && echo "SUCCESS" || echo "FAILED"
+      test -d "{{worktree_path}}/.bmad/custom/src/agents/{{agent_name}}" && echo "SUCCESS" || echo "FAILED"
       ```
 
       <check if="move FAILED">
@@ -254,7 +254,7 @@ Deploy agent based on agent_mode. For YOLO: validate source BEFORE moving (fix i
   Load and execute {createAgentWorkflow}
 
   Pass context:
-  - output_location: {{worktree_path}}/bmad/agents/
+  - output_location: {{worktree_path}}/.bmad/custom/src/agents/
   ```
 
   <action>After wizard completes, capture {{custom_agent}} from workflow output</action>
