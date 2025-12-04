@@ -1,6 +1,4 @@
-[![BMAD Extension](https://img.shields.io/badge/BMAD-Extension-blue)](https://github.com/bmad-code-org/BMAD-METHOD)
-
-# 🌳 Treehouse (BMad Workspace)
+# 🌳 Treehouse [Concept]
 
 > Fork easily. Stay focused. Sync what matters.
 
@@ -252,7 +250,5 @@ auto_commit_tracking: false
 The name reflects the core architecture: your workspace is like a **treehouse** - an elevated, cozy space built on the tree (git). **Nooks** are the individual spaces where focused work happens, each sitting on top of a git branch.
 
 ---
-
-Built for [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD)
 
 Feedback welcome! 🙏
