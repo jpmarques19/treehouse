@@ -2,3 +2,9 @@
 # Each project sets its own base_workspace_path, worktrees_folder, etc.
 # Use config.example.yaml as template
 
+# BMAD and Treehouse
+_bmad
+_bmad-output
+.treehouse
+CLAUDE.md
+.claude
