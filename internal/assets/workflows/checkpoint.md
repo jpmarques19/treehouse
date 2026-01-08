@@ -1,4 +1,4 @@
-# Handoff Workflow
+# Checkpoint Workflow
 
 Save current context before switching nooks or ending a session.
 
@@ -14,14 +14,14 @@ Check if currently in a nook worktree:
 
 1. Run `th list` to get current context
 2. Check `current_nook` field in response
-3. If `current_nook` is null, show: `⚠ Not in a nook. Nothing to hand off.` and exit
+3. If `current_nook` is null, show: `⚠ Not in a nook. Nothing to checkpoint.` and exit
 
 ### Step 2: Generate Session Summary
 
 Prompt the agent to summarize the current session:
 
 ```
-Handoff: Please summarize this session for future context.
+Checkpoint: Please summarize this session for future context.
 
 What was accomplished?
 Current state (build status, blockers)?
