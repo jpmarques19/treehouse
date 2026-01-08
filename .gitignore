@@ -13,3 +13,11 @@ CLAUDE.md
 # These paths are per-workspace and synced via th workflows
 # Do not remove - managed by /bmad:th:workflows:treehouse-init
 docs/
+
+# Go binary (at root only)
+/th
+*.exe
+
+# Go build artifacts
+*.test
+*.out
