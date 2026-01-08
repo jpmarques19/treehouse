@@ -56,6 +56,7 @@ func Execute(args []string) int {
 	initExitCode = 0
 	listExitCode = 0
 	removeExitCode = 0
+	pruneExitCode = 0
 
 	rootCmd.SetArgs(args)
 
@@ -89,6 +90,11 @@ func Execute(args []string) int {
 	// Check if remove command was executed and return its exit code
 	if len(args) > 0 && args[0] == "remove" {
 		return removeExitCode
+	}
+
+	// Check if prune command was executed and return its exit code
+	if len(args) > 0 && args[0] == "prune" {
+		return pruneExitCode
 	}
 
 	return 0
