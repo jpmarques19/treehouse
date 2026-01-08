@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/treehouse-cli/th/internal/cmd"
+	"github.com/jpmarques19/treehouse/internal/cmd"
 )
 
 func main() {
