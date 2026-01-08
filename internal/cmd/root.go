@@ -55,6 +55,7 @@ func Execute(args []string) int {
 	versionFlag = false
 	initExitCode = 0
 	listExitCode = 0
+	removeExitCode = 0
 
 	rootCmd.SetArgs(args)
 
@@ -83,6 +84,11 @@ func Execute(args []string) int {
 	// Check if list command was executed and return its exit code
 	if len(args) > 0 && args[0] == "list" {
 		return listExitCode
+	}
+
+	// Check if remove command was executed and return its exit code
+	if len(args) > 0 && args[0] == "remove" {
+		return removeExitCode
 	}
 
 	return 0
