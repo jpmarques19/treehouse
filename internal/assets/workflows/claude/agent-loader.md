@@ -1,5 +1,5 @@
 ---
-name: 'agent'
+name: 'agent-loader'
 description: 'Load and execute a Treehouse agent'
 ---
 
