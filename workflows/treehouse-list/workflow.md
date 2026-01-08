@@ -1,56 +1,128 @@
----
-name: "treehouse-list"
-description: "View workspace lineage tree - displays all tracked workspaces from base, with status and cleanup options"
-version: "2.0.0"
-web_bundle: true
----
+# Treehouse List Workflow
 
-# Treehouse List - View Workspace Lineage Tree
+Display workspace lineage as a visual tree with status icons and action menu.
 
-**Goal:** Display a visual tree of all workspaces showing nook lineage, hierarchy, health status, and provide quick access to navigation and cleanup operations.
+## Overview
 
-**Your Role:** In addition to your name, communication_style, and persona, you are also a workspace navigation assistant helping a developer view and manage their workspace lineage. This is a utility workflow - display information clearly and handle menu actions efficiently.
+This workflow calls `th list` to get JSON data about all decks and nooks, then renders a visual tree representation with status indicators and an interactive action menu.
 
----
+## Execution
 
-## WORKFLOW ARCHITECTURE
+### Step 1: Get Workspace Data
 
-This uses **step-file architecture** for disciplined execution:
+Run the list command:
+```bash
+th list
+```
 
-### Core Principles
+Parse the JSON response. If `success` is false, handle errors:
 
-- **Micro-file Design**: Each step is a self contained instruction file that must be followed exactly
-- **Just-In-Time Loading**: Only the current step file is in memory - never load future step files until told to do so
-- **Sequential Enforcement**: Sequence within the step files must be completed in order, no skipping or optimization allowed
-- **Action Workflow**: This workflow displays status and performs operations, no document output
+- **INIT_NOT_FOUND**: Show "Treehouse not initialized. Run /treehouse-init first"
+- **Other errors**: Show the error message
 
-### Step Processing Rules
+### Step 2: Render Tree Header
 
-1. **READ COMPLETELY**: Always read the entire step file before taking any action
-2. **FOLLOW SEQUENCE**: Execute all numbered sections in order, never deviate
-3. **WAIT FOR INPUT**: If a menu is presented, halt and wait for user selection
-4. **EXECUTE COMMANDS**: Run bash commands exactly as specified
-5. **LOAD NEXT**: When directed, load, read entire file, then execute the next step file
+```
+Workspace Lineage
 
-### Critical Rules (NO EXCEPTIONS)
+base {base.path}
+here {base.branch} · {base.commit (first 7 chars)}
+```
 
-- **NEVER** load multiple step files simultaneously
-- **ALWAYS** read entire step file before execution
-- **NEVER** skip steps or optimize the sequence
-- **ALWAYS** follow the exact instructions in the step file
-- **ALWAYS** halt at menus and wait for user input
-- **NEVER** create mental todo lists from future steps
+### Step 3: Build Tree Visualization
 
----
+If `decks` array is empty:
+```
+No nooks yet. Create your first with /nook-fork
+```
 
-## INITIALIZATION SEQUENCE
+Otherwise, build the tree using this algorithm:
 
-### 1. Configuration Loading
+1. **Group nooks by parent** - Create a map of parent -> children
+2. **Start from base branch** (main/master/dev)
+3. **Recursively render children** with proper indentation
 
-Load and read full config from `{project-root}/.bmad/th/config.yaml` and resolve:
+Tree characters:
+- `├──` for middle items (has siblings after)
+- `└──` for last items
+- `│   ` for continuing vertical lines
+- `    ` for empty space (after last item)
 
-- `base_workspace_path`, `base_branch`, `worktrees_folder`
+Status icons:
+- `●` Active (current nook or has worktree)
+- `○` Inactive (tracked but no worktree)
+- `✗` Orphan (worktree exists but not tracked)
 
-### 2. First Step EXECUTION
+Mark current nook (from `current_nook` field) as active.
 
-Load, read the full file and then execute `{project-root}/.bmad/th/workflows/treehouse-list/steps/step-01-check-init.md` to begin the workflow.
+Example output:
+```
+main
+├── ● a1b2-auth-spike
+│   └── ○ c3d4-jwt-variant
+├── ○ e5f6-redis-cache
+└── ○ g7h8-refactor-api
+```
+
+### Step 4: Render Summary Bar
+
+Count nooks by status and display:
+```
+─────────────────────────────────────────────────
+ ● N active       ○ N inactive    ✗ N orphan
+─────────────────────────────────────────────────
+```
+
+### Step 5: Show Action Menu
+
+```
+ [n] navigate     [d] delete      [p] prune
+ [s] sleep        [r] refresh     [q] quit
+```
+
+### Step 6: Handle Menu Selection
+
+Wait for user input and handle:
+
+- **[n] Navigate**: Ask for nook ID, then `cd` to its worktree path
+- **[d] Delete**: Ask for nook ID, confirm, then run `th remove {nook-id}`
+- **[p] Prune**: Run `th prune` to clean up orphan worktrees
+- **[s] Sleep**: Ask for nook ID, remove worktree but keep branch tracking
+- **[r] Refresh**: Re-run `th list` and re-render tree
+- **[q] Quit**: Exit workflow
+
+## JSON Response Structure
+
+```json
+{
+  "success": true,
+  "data": {
+    "base": {
+      "path": "/path/to/repo",
+      "branch": "main",
+      "commit": "abc1234def5678"
+    },
+    "current_nook": "a1b2-auth-spike",
+    "decks": [
+      {
+        "id": "dk-a1b2",
+        "created": "2026-01-08",
+        "nooks": [
+          {
+            "id": "a1b2-auth-spike",
+            "parent": "main",
+            "created": "2026-01-08",
+            "worktree": "/path/to/repo/.treehouse/nooks/a1b2-auth-spike",
+            "status": "active"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Dependencies
+
+- `th` CLI must be installed and in PATH
+- Treehouse must be initialized (`th init`)
