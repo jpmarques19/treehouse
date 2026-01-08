@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/treehouse-cli/th/internal/testutil"
+	"github.com/jpmarques19/treehouse/internal/testutil"
 )
 
 func TestDetectRepo_InGitRoot(t *testing.T) {

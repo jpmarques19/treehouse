@@ -23,7 +23,7 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -s -w
-      - -X github.com/treehouse-cli/th/internal/cmd.Version={{.Version}}
+      - -X github.com/jpmarques19/treehouse/internal/cmd.Version={{.Version}}
 
 archives:
   - format: binary
@@ -48,8 +48,8 @@ changelog:
 
 release:
   github:
-    owner: treehouse-cli
-    name: th
+    owner: jpmarques19
+    name: treehouse
   draft: false
   prerelease: auto
   name_template: "{{.ProjectName}} v{{.Version}}"

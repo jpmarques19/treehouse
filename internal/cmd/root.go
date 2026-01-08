@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/spf13/cobra"
-	"github.com/treehouse-cli/th/internal/output"
+	"github.com/jpmarques19/treehouse/internal/output"
 )
 
 // Version is set by ldflags at build time

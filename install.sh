@@ -7,7 +7,7 @@ set -e
 # Check for required commands
 command -v curl >/dev/null 2>&1 || { echo "✗ curl is required but not installed"; exit 1; }
 
-REPO="treehouse-cli/th"
+REPO="jpmarques19/treehouse"
 INSTALL_DIR="${HOME}/.local/bin"
 
 # Detect OS

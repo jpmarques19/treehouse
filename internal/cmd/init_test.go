@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/treehouse-cli/th/internal/output"
-	"github.com/treehouse-cli/th/internal/testutil"
+	"github.com/jpmarques19/treehouse/internal/output"
+	"github.com/jpmarques19/treehouse/internal/testutil"
 )
 
 func TestInitCommand_Success(t *testing.T) {
