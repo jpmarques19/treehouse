@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"path/filepath"
+	"sort"
 
 	"github.com/spf13/cobra"
+	"github.com/jpmarques19/treehouse/internal/agent"
 	"github.com/jpmarques19/treehouse/internal/deck"
 	"github.com/jpmarques19/treehouse/internal/output"
 	"github.com/jpmarques19/treehouse/internal/treehouse"
@@ -99,8 +101,8 @@ func runPrune() int {
 	decksRemovedMap := make(map[string]bool)
 
 	for _, nookID := range orphans {
-		// Clean up crew memory files
-		deleteCrewMemoryFiles(thInfo.TreehousePath, nookID)
+		// Clean up agent memory files
+		_ = agent.DeleteMemoryFiles(thInfo.TreehousePath, nookID)
 
 		// Remove from decks.yaml
 		deckID, found := deck.GetDeckForNook(decks, nookID)
@@ -125,11 +127,13 @@ func runPrune() int {
 		return 1
 	}
 
-	// 7. Convert decks removed map to slice
+	// 7. Convert decks removed map to sorted slice for consistent output
 	var decksRemoved []string
 	for deckID := range decksRemovedMap {
 		decksRemoved = append(decksRemoved, deckID)
 	}
+	sort.Strings(decksRemoved)
+	sort.Strings(pruned)
 
 	// 8. Return success
 	output.PrintSuccess(PruneResult{

@@ -1,15 +1,17 @@
 package cmd
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/spf13/cobra"
+	"github.com/jpmarques19/treehouse/internal/agent"
 	"github.com/jpmarques19/treehouse/internal/deck"
+	"github.com/jpmarques19/treehouse/internal/nook"
 	"github.com/jpmarques19/treehouse/internal/output"
 	"github.com/jpmarques19/treehouse/internal/treehouse"
 	"github.com/jpmarques19/treehouse/internal/worktree"
 )
+
+// maxRecursionDepth limits the depth of recursive nook collection to prevent stack overflow
+const maxRecursionDepth = 100
 
 // removeExitCode stores the exit code for the remove command
 var removeExitCode int
@@ -45,6 +47,17 @@ type RemoveResult struct {
 
 // runRemove executes the remove command logic and returns the exit code
 func runRemove(nookID string) int {
+	// 0. Validate nook ID format (prevents path traversal)
+	if err := nook.ValidateNookID(nookID); err != nil {
+		nookErr, ok := err.(*nook.NookError)
+		if ok {
+			output.PrintError(nookErr.Code, nookErr.Message)
+		} else {
+			output.PrintError("INVALID_NOOK_ID", err.Error())
+		}
+		return 2
+	}
+
 	// 1. Find treehouse
 	thInfo, err := treehouse.FindTreehouse(".")
 	if err != nil {
@@ -101,8 +114,8 @@ func runRemove(nookID string) int {
 		// Remove worktree (ignore error if already missing)
 		_ = worktree.Remove(thInfo.WorktreesPath, id)
 
-		// Clean up crew memory files
-		deleteCrewMemoryFiles(thInfo.TreehousePath, id)
+		// Clean up agent memory files
+		_ = agent.DeleteMemoryFiles(thInfo.TreehousePath, id)
 
 		removed = append(removed, id)
 	}
@@ -141,6 +154,17 @@ func runRemove(nookID string) int {
 
 // collectNooksToRemove returns all nooks that need to be removed in order (children first)
 func collectNooksToRemove(decks *deck.DecksFile, nookID string) []string {
+	return collectNooksToRemoveWithDepth(decks, nookID, 0)
+}
+
+// collectNooksToRemoveWithDepth is the recursive implementation with depth tracking
+func collectNooksToRemoveWithDepth(decks *deck.DecksFile, nookID string, depth int) []string {
+	// Prevent stack overflow with depth limit
+	if depth >= maxRecursionDepth {
+		// Return just this nook if we hit the limit
+		return []string{nookID}
+	}
+
 	var result []string
 
 	// Get direct children
@@ -148,35 +172,11 @@ func collectNooksToRemove(decks *deck.DecksFile, nookID string) []string {
 
 	// Recursively collect all descendants (depth-first)
 	for _, child := range children {
-		result = append(result, collectNooksToRemove(decks, child)...)
+		result = append(result, collectNooksToRemoveWithDepth(decks, child, depth+1)...)
 	}
 
 	// Add this nook last (after all children)
 	result = append(result, nookID)
 
 	return result
-}
-
-// deleteCrewMemoryFiles removes memory and session files for a nook across all agents
-func deleteCrewMemoryFiles(treehousePath, nookID string) {
-	crewPath := filepath.Join(treehousePath, "crew")
-
-	// Check if crew directory exists
-	if _, err := os.Stat(crewPath); os.IsNotExist(err) {
-		return
-	}
-
-	// Pattern: .treehouse/crew/*/memories/{nook-id}.md
-	memPattern := filepath.Join(crewPath, "*", "memories", nookID+".md")
-	memFiles, _ := filepath.Glob(memPattern)
-	for _, f := range memFiles {
-		os.Remove(f) // Ignore errors - file may not exist
-	}
-
-	// Pattern: .treehouse/crew/*/sessions/{nook-id}.md
-	sessPattern := filepath.Join(crewPath, "*", "sessions", nookID+".md")
-	sessFiles, _ := filepath.Glob(sessPattern)
-	for _, f := range sessFiles {
-		os.Remove(f) // Ignore errors - file may not exist
-	}
 }

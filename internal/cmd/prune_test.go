@@ -103,17 +103,17 @@ func TestPruneCommand(t *testing.T) {
 			},
 		},
 		{
-			name:         "cleanup crew memory files on prune",
+			name:         "cleanup agents memory files on prune",
 			args:         []string{"prune"},
 			expectedCode: 0,
 			checkSuccess: true,
 			setupFunc: func(t *testing.T, tmpDir string) {
 				treehousePath := filepath.Join(tmpDir, ".treehouse")
 				nooksPath := filepath.Join(treehousePath, "nooks")
-				crewPath := filepath.Join(treehousePath, "crew", "spruce")
+				agentsPath := filepath.Join(treehousePath, "agents", "spruce")
 				os.MkdirAll(nooksPath, 0755)
-				os.MkdirAll(filepath.Join(crewPath, "memories"), 0755)
-				os.MkdirAll(filepath.Join(crewPath, "sessions"), 0755)
+				os.MkdirAll(filepath.Join(agentsPath, "memories"), 0755)
+				os.MkdirAll(filepath.Join(agentsPath, "sessions"), 0755)
 
 				decksYaml := `decks:
   dk-a1b2:
@@ -126,8 +126,8 @@ func TestPruneCommand(t *testing.T) {
 				os.WriteFile(filepath.Join(treehousePath, "decks.yaml"), []byte(decksYaml), 0644)
 
 				// Create memory files that should be deleted on prune
-				os.WriteFile(filepath.Join(crewPath, "memories", "a1b2-orphan.md"), []byte("# Memory"), 0644)
-				os.WriteFile(filepath.Join(crewPath, "sessions", "a1b2-orphan.md"), []byte("# Session"), 0644)
+				os.WriteFile(filepath.Join(agentsPath, "memories", "a1b2-orphan.md"), []byte("# Memory"), 0644)
+				os.WriteFile(filepath.Join(agentsPath, "sessions", "a1b2-orphan.md"), []byte("# Session"), 0644)
 			},
 		},
 	}
@@ -226,10 +226,10 @@ func TestPruneCommand(t *testing.T) {
 				}
 			}
 
-			// Verify crew memory files were deleted on prune
-			if tt.name == "cleanup crew memory files on prune" {
-				memFile := filepath.Join(tmpDir, ".treehouse", "crew", "spruce", "memories", "a1b2-orphan.md")
-				sessFile := filepath.Join(tmpDir, ".treehouse", "crew", "spruce", "sessions", "a1b2-orphan.md")
+			// Verify agents memory files were deleted on prune
+			if tt.name == "cleanup agents memory files on prune" {
+				memFile := filepath.Join(tmpDir, ".treehouse", "agents", "spruce", "memories", "a1b2-orphan.md")
+				sessFile := filepath.Join(tmpDir, ".treehouse", "agents", "spruce", "sessions", "a1b2-orphan.md")
 
 				if _, err := os.Stat(memFile); !os.IsNotExist(err) {
 					t.Errorf("Memory file should have been deleted: %s", memFile)

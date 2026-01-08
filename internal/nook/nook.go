@@ -115,3 +115,36 @@ func ParseNookID(nookID string) (hash string, name string, err error) {
 
 	return hash, name, nil
 }
+
+// nookIDRegex matches valid nook IDs: 4 hex chars, hyphen, then alphanumeric with hyphens
+var nookIDRegex = regexp.MustCompile(`^[a-f0-9]{4}-[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-f0-9]{4}-[a-z0-9]$`)
+
+// ValidateNookID checks if a nook ID has valid format and is safe for filesystem use
+// This prevents path traversal attacks (e.g., "../" in nook ID)
+func ValidateNookID(nookID string) error {
+	// Check minimum length
+	if len(nookID) < 6 {
+		return &NookError{
+			Code:    "INVALID_NOOK_ID",
+			Message: fmt.Sprintf("Invalid nook ID format: %s", nookID),
+		}
+	}
+
+	// Check for path traversal attempts
+	if strings.Contains(nookID, "..") || strings.Contains(nookID, "/") || strings.Contains(nookID, "\\") {
+		return &NookError{
+			Code:    "INVALID_NOOK_ID",
+			Message: fmt.Sprintf("Invalid nook ID: contains illegal characters: %s", nookID),
+		}
+	}
+
+	// Validate format with regex
+	if !nookIDRegex.MatchString(nookID) {
+		return &NookError{
+			Code:    "INVALID_NOOK_ID",
+			Message: fmt.Sprintf("Invalid nook ID format: %s", nookID),
+		}
+	}
+
+	return nil
+}

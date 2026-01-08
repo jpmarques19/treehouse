@@ -28,11 +28,23 @@ func TestRemoveCommand(t *testing.T) {
 		},
 		{
 			name:          "nook not found",
-			args:          []string{"remove", "nonexistent-nook"},
+			args:          []string{"remove", "a1b2-nonexistent"},
 			expectedCode:  4,
 			expectedError: "NOOK_NOT_FOUND",
 			setupFunc: func(t *testing.T, tmpDir string) {
 				// Create initialized treehouse with empty decks
+				treehousePath := filepath.Join(tmpDir, ".treehouse")
+				os.MkdirAll(treehousePath, 0755)
+				os.WriteFile(filepath.Join(treehousePath, "decks.yaml"), []byte("decks: {}\n"), 0644)
+			},
+		},
+		{
+			name:          "invalid nook id format",
+			args:          []string{"remove", "invalid-format"},
+			expectedCode:  2,
+			expectedError: "INVALID_NOOK_ID",
+			setupFunc: func(t *testing.T, tmpDir string) {
+				// Create initialized treehouse
 				treehousePath := filepath.Join(tmpDir, ".treehouse")
 				os.MkdirAll(treehousePath, 0755)
 				os.WriteFile(filepath.Join(treehousePath, "decks.yaml"), []byte("decks: {}\n"), 0644)
@@ -98,18 +110,18 @@ func TestRemoveCommand(t *testing.T) {
 			},
 		},
 		{
-			name:         "cleanup crew memory files",
+			name:         "cleanup agents memory files",
 			args:         []string{"remove", "a1b2-test-nook"},
 			expectedCode: 0,
 			checkSuccess: true,
 			setupFunc: func(t *testing.T, tmpDir string) {
-				// Create initialized treehouse with crew memory files
+				// Create initialized treehouse with agents memory files
 				treehousePath := filepath.Join(tmpDir, ".treehouse")
 				nooksPath := filepath.Join(treehousePath, "nooks")
-				crewPath := filepath.Join(treehousePath, "crew", "spruce")
+				agentsPath := filepath.Join(treehousePath, "agents", "spruce")
 				os.MkdirAll(nooksPath, 0755)
-				os.MkdirAll(filepath.Join(crewPath, "memories"), 0755)
-				os.MkdirAll(filepath.Join(crewPath, "sessions"), 0755)
+				os.MkdirAll(filepath.Join(agentsPath, "memories"), 0755)
+				os.MkdirAll(filepath.Join(agentsPath, "sessions"), 0755)
 
 				// Create decks.yaml
 				decksYaml := `decks:
@@ -124,8 +136,8 @@ func TestRemoveCommand(t *testing.T) {
 				os.MkdirAll(filepath.Join(nooksPath, "a1b2-test-nook"), 0755)
 
 				// Create memory files that should be deleted
-				os.WriteFile(filepath.Join(crewPath, "memories", "a1b2-test-nook.md"), []byte("# Memory"), 0644)
-				os.WriteFile(filepath.Join(crewPath, "sessions", "a1b2-test-nook.md"), []byte("# Session"), 0644)
+				os.WriteFile(filepath.Join(agentsPath, "memories", "a1b2-test-nook.md"), []byte("# Memory"), 0644)
+				os.WriteFile(filepath.Join(agentsPath, "sessions", "a1b2-test-nook.md"), []byte("# Session"), 0644)
 			},
 		},
 	}
@@ -218,10 +230,10 @@ func TestRemoveCommand(t *testing.T) {
 				}
 			}
 
-			// Verify crew memory files were deleted
-			if tt.name == "cleanup crew memory files" {
-				memFile := filepath.Join(tmpDir, ".treehouse", "crew", "spruce", "memories", "a1b2-test-nook.md")
-				sessFile := filepath.Join(tmpDir, ".treehouse", "crew", "spruce", "sessions", "a1b2-test-nook.md")
+			// Verify agents memory files were deleted
+			if tt.name == "cleanup agents memory files" {
+				memFile := filepath.Join(tmpDir, ".treehouse", "agents", "spruce", "memories", "a1b2-test-nook.md")
+				sessFile := filepath.Join(tmpDir, ".treehouse", "agents", "spruce", "sessions", "a1b2-test-nook.md")
 
 				if _, err := os.Stat(memFile); !os.IsNotExist(err) {
 					t.Errorf("Memory file should have been deleted: %s", memFile)
