@@ -85,10 +85,10 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 	dirs := []string{
 		basePath,
 		filepath.Join(basePath, "nooks"),
-		filepath.Join(basePath, "crew"),
-		filepath.Join(basePath, "crew", "oak"),
-		filepath.Join(basePath, "crew", "oak", "memories"),
-		filepath.Join(basePath, "crew", "oak", "sessions"),
+		filepath.Join(basePath, "agents"),
+		filepath.Join(basePath, "agents", "oak"),
+		filepath.Join(basePath, "agents", "oak", "memories"),
+		filepath.Join(basePath, "agents", "oak", "sessions"),
 		filepath.Join(basePath, "workflows"),
 	}
 
@@ -110,11 +110,11 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 	created = append(created, "nooks/")
 
 	// Create Oak agent files
-	if err := createOakAgent(filepath.Join(basePath, "crew", "oak")); err != nil {
+	if err := createOakAgent(filepath.Join(basePath, "agents", "oak")); err != nil {
 		_ = os.RemoveAll(basePath)
 		return nil, err
 	}
-	created = append(created, "crew/oak/")
+	created = append(created, "agents/oak/")
 
 	// Install workflows from embedded assets
 	workflowsPath := filepath.Join(basePath, "workflows")
