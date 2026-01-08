@@ -54,6 +54,7 @@ func Execute(args []string) int {
 	// Reset version flag and exit codes for each execution (important for tests)
 	versionFlag = false
 	initExitCode = 0
+	listExitCode = 0
 
 	rootCmd.SetArgs(args)
 
@@ -77,6 +78,11 @@ func Execute(args []string) int {
 	// Check if init command was executed and return its exit code
 	if len(args) > 0 && args[0] == "init" {
 		return initExitCode
+	}
+
+	// Check if list command was executed and return its exit code
+	if len(args) > 0 && args[0] == "list" {
+		return listExitCode
 	}
 
 	return 0

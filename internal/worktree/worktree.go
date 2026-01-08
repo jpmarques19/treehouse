@@ -151,6 +151,18 @@ func Create(worktreesPath string, nookID string, parentBranch string) (string, e
 	return absPath, nil
 }
 
+// Exists checks if a worktree path exists
+func Exists(worktreePath string) (bool, error) {
+	_, err := os.Stat(worktreePath)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
 // Remove removes a git worktree by nook ID
 func Remove(worktreesPath string, nookID string) error {
 	worktreePath := filepath.Join(worktreesPath, nookID)
