@@ -161,7 +161,10 @@ func TestForkCommand_NotInitialized(t *testing.T) {
 	_ = cmd.Run()
 
 	// Change to test directory
-	originalDir, _ := os.Getwd()
+	originalDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get working directory: %v", err)
+	}
 	if err := os.Chdir(dir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
@@ -199,7 +202,10 @@ func TestForkCommand_Success(t *testing.T) {
 	repoDir := setupForkTestRepo(t)
 
 	// Change to test directory
-	originalDir, _ := os.Getwd()
+	originalDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get working directory: %v", err)
+	}
 	if err := os.Chdir(repoDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
 	}

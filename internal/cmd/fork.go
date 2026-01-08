@@ -83,6 +83,12 @@ func runFork(name string) int {
 		return 3
 	}
 
+	// 3b. Validate commit SHA is present
+	if repoInfo.CommitSHA == "" {
+		output.PrintError("GIT_NO_COMMITS", "No commits found. Make at least one commit first")
+		return 3
+	}
+
 	// 4. Generate nook ID
 	nookID, err := nook.GenerateID(name, repoInfo.CommitSHA)
 	if err != nil {
@@ -95,22 +101,32 @@ func runFork(name string) int {
 		return 1
 	}
 
-	// 5. Check if nook already exists in decks.yaml
-	exists, err := deck.NookExists(thInfo.TreehousePath, nookID)
+	// 5. Load decks.yaml (once, reuse throughout)
+	decks, err := deck.LoadDecks(thInfo.TreehousePath)
 	if err != nil {
 		deckErr, ok := err.(*deck.DeckError)
-		if ok && deckErr.Code != "DECK_FILE_NOT_FOUND" {
-			output.PrintError(deckErr.Code, deckErr.Message)
+		if ok && deckErr.Code == "DECK_FILE_NOT_FOUND" {
+			// Create empty decks structure - file will be created on save
+			decks = &deck.DecksFile{Decks: make(map[string]*deck.Deck)}
+		} else {
+			if ok {
+				output.PrintError(deckErr.Code, deckErr.Message)
+			} else {
+				output.PrintError("DECK_ERROR", err.Error())
+			}
 			return 1
 		}
-		// If deck file not found, that's OK - we'll create it
-	}
-	if exists {
-		output.PrintError("NOOK_ALREADY_EXISTS", "Nook '"+nookID+"' already exists")
-		return 1
 	}
 
-	// 6. Get parent info (are we in base repo or a nook?)
+	// 6. Check if nook already exists
+	for _, d := range decks.Decks {
+		if _, exists := d.Nooks[nookID]; exists {
+			output.PrintError("NOOK_ALREADY_EXISTS", "Nook '"+nookID+"' already exists")
+			return 1
+		}
+	}
+
+	// 7. Get parent info (are we in base repo or a nook?)
 	parentInfo, err := worktree.GetParentInfo(thInfo.TreehousePath)
 	if err != nil {
 		wtErr, ok := err.(*worktree.WorktreeError)
@@ -122,10 +138,10 @@ func runFork(name string) int {
 		return 3
 	}
 
-	// 7. Use worktrees path from treehouse info (.treehouse/nooks/)
+	// 8. Use worktrees path from treehouse info (.treehouse/nooks/)
 	worktreesPath := thInfo.WorktreesPath
 
-	// 8. Create the git worktree
+	// 9. Create the git worktree
 	worktreePath, err := worktree.Create(worktreesPath, nookID, parentInfo.ParentID)
 	if err != nil {
 		wtErr, ok := err.(*worktree.WorktreeError)
@@ -137,7 +153,7 @@ func runFork(name string) int {
 		return 3
 	}
 
-	// 9. Determine deck ID
+	// 10. Determine deck ID
 	// If forking from base branch (main/dev), create new deck
 	// If forking from existing nook, use same deck
 	var deckID string
@@ -145,19 +161,6 @@ func runFork(name string) int {
 
 	if parentInfo.IsNook {
 		// Sub-fork: find parent's deck
-		decks, err := deck.LoadDecks(thInfo.TreehousePath)
-		if err != nil {
-			// Worktree created but can't find parent deck - rollback
-			_ = worktree.Remove(worktreesPath, nookID)
-			deckErr, ok := err.(*deck.DeckError)
-			if ok {
-				output.PrintError(deckErr.Code, deckErr.Message)
-			} else {
-				output.PrintError("DECK_ERROR", err.Error())
-			}
-			return 1
-		}
-
 		parentDeckID, found := deck.GetDeckForNook(decks, parentInfo.ParentID)
 		if !found {
 			// Parent nook not in any deck - strange state, create new deck anyway
@@ -170,31 +173,16 @@ func runFork(name string) int {
 		deckID = deck.GenerateDeckID(nookHash)
 	}
 
-	// 10. Update decks.yaml
-	decks, err := deck.LoadDecks(thInfo.TreehousePath)
-	if err != nil {
-		deckErr, ok := err.(*deck.DeckError)
-		if ok && deckErr.Code == "DECK_FILE_NOT_FOUND" {
-			// Create empty decks file
-			decks = &deck.DecksFile{Decks: make(map[string]*deck.Deck)}
-		} else {
-			// Rollback worktree
-			_ = worktree.Remove(worktreesPath, nookID)
-			if ok {
-				output.PrintError(deckErr.Code, deckErr.Message)
-			} else {
-				output.PrintError("DECK_ERROR", err.Error())
-			}
-			return 1
-		}
-	}
-
 	created := time.Now().Format("2006-01-02")
 	deck.AddNookToDeck(decks, deckID, nookID, parentInfo.ParentID, created)
 
 	if err := deck.SaveDecks(thInfo.TreehousePath, decks); err != nil {
-		// Rollback worktree
-		_ = worktree.Remove(worktreesPath, nookID)
+		// Rollback worktree - log if rollback also fails
+		if rollbackErr := worktree.Remove(worktreesPath, nookID); rollbackErr != nil {
+			// Worktree cleanup failed - user may need to manually remove
+			output.PrintError("DECK_WRITE_FAILED", err.Error()+" (warning: worktree cleanup also failed, manual removal may be needed)")
+			return 1
+		}
 		deckErr, ok := err.(*deck.DeckError)
 		if ok {
 			output.PrintError(deckErr.Code, deckErr.Message)
