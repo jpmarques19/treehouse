@@ -46,7 +46,7 @@ func FindTreehouse(startPath string) (*Info, error) {
 			return &Info{
 				TreehousePath: treehousePath,
 				RepoRoot:      currentPath,
-				WorktreesPath: filepath.Join(currentPath, "..", "worktrees"),
+				WorktreesPath: filepath.Join(treehousePath, "nooks"),
 			}, nil
 		}
 

@@ -83,6 +83,7 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 	// Create directories
 	dirs := []string{
 		basePath,
+		filepath.Join(basePath, "nooks"),
 		filepath.Join(basePath, "crew"),
 		filepath.Join(basePath, "crew", "oak"),
 		filepath.Join(basePath, "crew", "oak", "memories"),
@@ -105,6 +106,7 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 		return nil, err
 	}
 	created = append(created, "decks.yaml")
+	created = append(created, "nooks/")
 
 	// Create Oak agent files
 	if err := createOakAgent(filepath.Join(basePath, "crew", "oak")); err != nil {

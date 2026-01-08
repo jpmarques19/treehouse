@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -123,8 +122,8 @@ func runFork(name string) int {
 		return 3
 	}
 
-	// 7. Calculate worktrees path
-	worktreesPath := filepath.Join(thInfo.RepoRoot, "..", "worktrees")
+	// 7. Use worktrees path from treehouse info (.treehouse/nooks/)
+	worktreesPath := thInfo.WorktreesPath
 
 	// 8. Create the git worktree
 	worktreePath, err := worktree.Create(worktreesPath, nookID, parentInfo.ParentID)
