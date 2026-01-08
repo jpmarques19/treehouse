@@ -87,10 +87,82 @@ Count nooks by status and display:
 Wait for user input and handle:
 
 - **[n] Navigate**: Ask for nook ID, then `cd` to its worktree path
-- **[d] Delete**: Ask for nook ID, confirm, then run `th remove {nook-id}`
-- **[p] Prune**: Run `th prune` to clean up orphan worktrees
+- **[d] Delete**: Show delete submenu (see Step 6a)
+- **[p] Prune**: Show prune confirmation (see Step 6b)
 - **[r] Refresh**: Re-run `th list` and re-render tree
 - **[q] Quit**: Exit workflow
+
+#### Step 6a: Delete Submenu
+
+When `[d]` is selected, show numbered list of deletable nooks (excludes current nook):
+
+```
+Delete nook:
+
+1. ○ c3d4-jwt-variant
+2. ○ e5f6-redis-cache
+3. ✗ x1y2-old-experiment
+
+enter number or q to cancel:
+```
+
+When user enters a number, show confirmation with consequences:
+
+```
+Delete {nook-id}?
+
+this will:
+  - remove git worktree
+  - delete crew memory files
+  - update decks.yaml
+
+[y/n]
+```
+
+If confirmed with `y`:
+1. Run `th remove {nook-id}`
+2. Show: `✓ Removed {nook-id}`
+3. Refresh tree and return to main menu
+
+If declined with `n`:
+1. Show: `Cancelled`
+2. Return to main menu
+
+#### Step 6b: Prune Confirmation
+
+When `[p]` is selected:
+
+First, find orphans by checking nooks with status `"orphan"` from the list data.
+
+If no orphans exist:
+```
+No orphaned nooks to prune.
+```
+Return to main menu.
+
+If orphans exist, show confirmation:
+```
+Prune orphaned nooks?
+
+found {N} orphans:
+  - x1y2-old-experiment
+  - z3w4-abandoned
+
+this will:
+  - remove entries from decks.yaml
+  - delete associated crew memory files
+
+[y/n]
+```
+
+If confirmed with `y`:
+1. Run `th prune`
+2. Show: `✓ Pruned {N} orphaned nooks`
+3. Refresh tree and return to main menu
+
+If declined with `n`:
+1. Show: `Cancelled`
+2. Return to main menu
 
 ## JSON Response Structure
 
