@@ -66,293 +66,142 @@ Intent Summary:
 
 ## Step 2: Role Development
 
-**Field Purpose:** Define WHAT the agent does - their expertise domain and capabilities.
+### 2.1 Generate Role
 
-### 2.1 Explain Role Field
-
-Show user:
-```
-ROLE - What This Agent Does
-
-The role field defines the agent's professional identity:
-  • Expertise domain and knowledge areas
-  • Capabilities and what they're expert in
-  • Functional definition (NOT personality)
-
-Quality Check: Can you describe their job without mentioning personality?
-
-Example: "Expert Go developer specializing in CLI tools and testing patterns"
-```
-
-### 2.2 Generate Role from Intent
-
-Using the intent summary from Step 1, generate the role field that defines:
+Based on the intent summary, generate a concise role statement (1-2 sentences) that defines:
 - Expertise domain and knowledge areas
-- Capabilities and what they're expert in
+- Capabilities and specializations
 - Functional definition (NOT personality)
 
-**Generation Prompt (internal):**
-"Based on this intent: {intent_summary}, generate a concise role statement that defines what this agent is expert in and what they do professionally."
-
-### 2.3 Display & Review
+### 2.2 Display & Review
 
 ```
 ROLE:
 {generated_role}
 
-Quality Check:
-  ✓ Functional definition (job description)
-  ✓ No personality traits mentioned
-  ✓ Clear expertise domain
-
-Review this role:
-  [c] Continue to identity
-  [e] Edit role
+  [c] Continue
+  [e] Edit
 ```
 
-**If [e]:** Ask what to change, regenerate, redisplay, re-prompt
-**If [c]:** Save role, proceed to Step 3
+**If [e]:** Ask what to change, regenerate, redisplay
+**If [c]:** Proceed to Step 3
 
 ---
 
 ## Step 3: Identity Development
 
-**Field Purpose:** Define WHO the agent is - their character and personality.
+### 3.1 Generate Identity
 
-### 3.1 Explain Identity Field
+Based on the intent and role, generate an identity (2-3 sentences) that defines:
+- Personality type and attitude
+- Emotional intelligence and worldview
+- Character traits (NOT job description)
 
-Show user:
-```
-IDENTITY - Who This Agent Is
-
-The identity field defines the agent's character:
-  • Personality type and attitude
-  • Emotional intelligence and worldview
-  • Character definition (NOT job description)
-
-Quality Check: Can you describe their character without their job title?
-
-Example: "Thoughtful and detail-oriented. Approaches problems systematically
-with a focus on maintainability. Values clarity and believes good code tells a story."
-```
-
-### 3.2 Gather Intent
-
-Ask:
-```
-What is this agent's personality and character?
-
-Describe their attitude, emotional approach, and worldview:
-```
-
-Wait for user response.
-
-### 3.3 Generate Identity
-
-From user's description, generate identity (2-3 sentences):
-- Focus on personality and character
-- Keep personal, not functional
-- Establish emotional intelligence
-
-### 3.4 Display & Review
+### 3.2 Display & Review
 
 ```
 IDENTITY:
 {generated_identity}
 
-Quality Check:
-  ✓ Personality and character traits
-  ✓ No job description elements
-  ✓ Distinct from role
-
-Review this identity:
-  [c] Continue to communication style
-  [e] Edit identity
+  [c] Continue
+  [e] Edit
 ```
 
-**If [e]:** Ask what to change, regenerate, redisplay, re-prompt
-**If [c]:** Save identity, proceed to Step 4
+**If [e]:** Ask what to change, regenerate, redisplay
+**If [c]:** Proceed to Step 4
 
 ---
 
 ## Step 4: Communication Style
 
-**Field Purpose:** Define HOW the agent speaks - tone, voice, and language patterns.
+### 4.1 Generate Communication Style
 
-### 4.1 Explain Communication Style
+Based on the role and identity, generate a communication style that defines:
+- Tone and formality level
+- Verbosity and linguistic preferences
+- Voice characteristics
 
-Show user:
-```
-COMMUNICATION STYLE - How This Agent Speaks
-
-The communication style defines speech patterns:
-  • Tone and formality level
-  • Verbosity and linguistic preferences
-  • Voice characteristics (NOT expertise or personality)
-
-Quality Check: Could a voice actor use this for direction?
-
-Example: "Direct and technical. Prefers code examples over lengthy explanations.
-Thinks in terms of interfaces and contracts."
-```
-
-### 4.2 Offer Presets
-
-Show common presets:
-```
-Communication Style Presets:
-
-1. Direct & Technical
-   "Direct and helpful. Focuses on clear explanations and practical solutions."
-
-2. Warm & Supportive
-   "Friendly and encouraging. Uses examples and analogies to clarify concepts."
-
-3. Concise & Precise
-   "Minimal verbosity. Prefers bullet points and code over prose."
-
-4. Custom
-   Describe your own communication style
-
-Select preset [1-3] or [4] for custom:
-```
-
-### 4.3 Generate Communication Style
-
-If preset selected: Use preset text
-If custom: Generate from user description
-
-### 4.4 Display & Review
+### 4.2 Display & Review
 
 ```
 COMMUNICATION STYLE:
 {generated_communication_style}
 
-Quality Check:
-  ✓ Language patterns and tone
-  ✓ No expertise or personality overlap
-  ✓ Actionable voice direction
-
-Review this communication style:
-  [c] Continue to principles
-  [e] Edit communication style
+  [c] Continue
+  [e] Edit
+  [p] Use preset instead
 ```
 
-**If [e]:** Ask what to change, regenerate, redisplay, re-prompt
-**If [c]:** Save communication style, proceed to Step 5
+**If [e]:** Ask what to change, regenerate, redisplay
+**If [p]:** Show presets:
+```
+Presets:
+  [1] Direct & Technical - Clear explanations, practical solutions
+  [2] Warm & Supportive - Friendly, uses examples and analogies
+  [3] Concise & Precise - Minimal verbosity, bullets over prose
+```
+Apply selected preset and redisplay
+**If [c]:** Proceed to Step 5
 
 ---
 
 ## Step 5: Principles Crafting
 
-**Field Purpose:** Define WHY the agent acts - decision-making framework and values.
+### 5.1 Generate Principles
 
-### 5.1 Explain Principles
+Based on the intent, role, identity, and communication style, generate 5-7 principles:
 
-Show user:
-```
-PRINCIPLES - Why This Agent Acts
-
-Principles define the agent's decision-making framework:
-  • First principle: Expert Activator (core mission)
-  • Principles 2-5: Decision framework (values that guide choices)
-  • Principles 6+: Behavioral constraints (operational boundaries)
-
-Quality Check: Would following these principles produce the desired behavior?
-
-Example:
+**Generation guidelines:**
+- First principle: Expert activator (core mission statement derived from role)
+- Principles 2-4: Decision framework values (derived from identity)
+- Principles 5-6: Behavioral constraints (derived from communication style)
+- Always include Treehouse defaults:
   - "Context window awareness - save state before refresh"
   - "Complete tasks fully regardless of context remaining"
-  - "Test-driven development - write tests first"
-```
 
-### 5.2 Gather Intent
-
-Ask:
-```
-What are this agent's core values and operating principles?
-
-Describe their decision-making framework and behavioral guidelines:
-```
-
-Wait for user response.
-
-### 5.3 Generate Principles
-
-From user's description, generate 5-7 principles:
-- First principle: Expert activator (core mission statement)
-- Middle principles: Decision framework values
-- Later principles: Behavioral constraints
-
-Include Treehouse defaults:
-- "Context window awareness - save state before refresh"
-- "Complete tasks fully regardless of context remaining"
-
-### 5.4 Display & Review
+### 5.2 Display & Review
 
 ```
 PRINCIPLES:
 {generated_principles_list}
 
-Quality Check:
-  ✓ First principle activates expertise
-  ✓ Creates decision-making clarity
-  ✓ Includes behavioral constraints
-
-Review these principles:
-  [c] Continue to build
-  [e] Edit principles
+  [c] Continue
+  [e] Edit
 ```
 
-**If [e]:** Ask what to change, regenerate, redisplay, re-prompt
-**If [c]:** Save principles, proceed to Step 6
+**If [e]:** Ask what to change, regenerate, redisplay
+**If [c]:** Proceed to Step 6
 
 ---
 
 ## Step 6: Finalize Identity (Name, Title, Icon)
 
-**Purpose:** Derive the agent's external identity from the persona we've built.
-
 ### 6.1 Generate Suggestions
 
-Based on the complete persona (role + identity + communication + principles), generate suggestions:
+Based on the complete persona, generate:
+- Name: lowercase, hyphen-separated, memorable
+- Title: 2-4 words, professional
+- Icon: single emoji representing expertise
 
-**Generation Prompt (internal):**
-"Based on this agent's complete persona, suggest:
-1. A name (lowercase, hyphen-separated, memorable, reflects expertise)
-2. A title (2-4 words, professional, clear role indication)
-3. An icon (single emoji that represents their expertise domain)"
-
-### 6.2 Present & Refine
+### 6.2 Display & Review
 
 ```
-Final Identity
-
-Based on your agent's persona, here are suggestions:
-
   Name: {suggested_name}
   Title: {suggested_title}
   Icon: {suggested_icon}
 
-The name will be used for: /th:agents:{suggested_name}
+  Command: /th:agents:{suggested_name}
 
-Options:
-  [c] Use these suggestions
-  [e] Edit name, title, or icon
-  [r] Regenerate different suggestions
+  [c] Continue
+  [e] Edit
+  [r] Regenerate
 ```
 
-### 6.3 Collect Changes (if needed)
-
-**If [e]:** Ask which field to change, get new value, redisplay
+**If [e]:** Ask which field to change, update, redisplay
 **If [r]:** Generate new suggestions, redisplay
 **If [c]:** Validate and proceed to Step 7
 
-**Validation:**
-- Name: lowercase, alphanumeric with hyphens only
-- Name: must not exist in `.treehouse/agents/`
-- Icon: single emoji (default ◇ if invalid)
-- Title: non-empty string
+**Validation:** Name must be unique in `.treehouse/agents/`
 
 ---
 
