@@ -15,6 +15,12 @@ func TestFindTreehouse_InCurrentDirectory(t *testing.T) {
 		t.Fatalf("Failed to create .treehouse: %v", err)
 	}
 
+	// Create decks.yaml (required to identify a valid treehouse)
+	decksPath := filepath.Join(treehousePath, "decks.yaml")
+	if err := os.WriteFile(decksPath, []byte("decks: {}\n"), 0644); err != nil {
+		t.Fatalf("Failed to create decks.yaml: %v", err)
+	}
+
 	info, err := FindTreehouse(dir)
 	if err != nil {
 		t.Fatalf("FindTreehouse() error = %v", err)
@@ -36,6 +42,12 @@ func TestFindTreehouse_InParentDirectory(t *testing.T) {
 	treehousePath := filepath.Join(dir, ".treehouse")
 	if err := os.MkdirAll(treehousePath, 0755); err != nil {
 		t.Fatalf("Failed to create .treehouse: %v", err)
+	}
+
+	// Create decks.yaml (required to identify a valid treehouse)
+	decksPath := filepath.Join(treehousePath, "decks.yaml")
+	if err := os.WriteFile(decksPath, []byte("decks: {}\n"), 0644); err != nil {
+		t.Fatalf("Failed to create decks.yaml: %v", err)
 	}
 
 	// Create a subdirectory
@@ -90,6 +102,12 @@ func TestExists(t *testing.T) {
 	treehousePath := filepath.Join(dir, ".treehouse")
 	if err := os.MkdirAll(treehousePath, 0755); err != nil {
 		t.Fatalf("Failed to create .treehouse: %v", err)
+	}
+
+	// Create decks.yaml (required to identify a valid treehouse)
+	decksPath := filepath.Join(treehousePath, "decks.yaml")
+	if err := os.WriteFile(decksPath, []byte("decks: {}\n"), 0644); err != nil {
+		t.Fatalf("Failed to create decks.yaml: %v", err)
 	}
 
 	// Now initialized
