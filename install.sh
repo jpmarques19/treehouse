@@ -1,6 +1,6 @@
 #!/bin/sh
 # Treehouse CLI installer
-# Usage: curl -sSL https://get.treehouse.dev/install.sh | sh
+# Usage: curl -sSL https://raw.githubusercontent.com/jpmarques19/treehouse/main/install.sh | sh
 
 set -e
 
