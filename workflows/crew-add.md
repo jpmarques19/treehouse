@@ -4,13 +4,19 @@ Progressive agent creation through iterative persona development.
 
 ## Overview
 
-This workflow guides you through creating a thoughtful, well-crafted treehouse agent by developing their persona section-by-section. Each section is generated from your intent and reviewed before proceeding.
+This workflow guides you through creating a thoughtful, well-crafted treehouse agent through intent-driven discovery. We'll progressively build the persona from your needs, then derive the agent's identity naturally from what we've created.
 
-**Philosophy:** Quality agents come from progressive refinement, not form-filling.
+**Philosophy:** Quality agents emerge from understanding intent, not filling forms.
+
+**Flow:**
+1. **Discover Intent** - What problem are you solving?
+2. **Build Persona** - Role → Identity → Communication → Principles
+3. **Derive Identity** - Name, title, icon emerge from the persona
+4. **Create Agent** - Generate files and celebrate
 
 ---
 
-## Step 1: Initialize & Collect Basics
+## Step 1: Intent Discovery
 
 ### 1.1 Verify Treehouse
 
@@ -20,30 +26,41 @@ If error with `INIT_NOT_FOUND`:
 - Show: `✗ Treehouse not initialized. Run /treehouse-init first`
 - Exit workflow
 
-### 1.2 Collect Basic Information
+### 1.2 Discover User Intent
 
-Prompt for essential details:
-
+Show:
 ```
-Create new crew member
+Create New Crew Member
 
-Name (lowercase, no spaces): _______
-Title (e.g., "Code Reviewer"): _______
-Icon (single emoji, default ◇): _______
+Let's discover what agent you need through conversation.
+
+What challenge or task do you want this agent to help with?
+
+Describe the problem you're trying to solve, the work you need help with,
+or the expertise you're looking for:
 ```
 
-**Validation:**
-- Name: lowercase, alphanumeric, convert spaces to hyphens
-- Name: must not exist in `.treehouse/agents/`
-- Icon: defaults to ◇ if empty
+Wait for user response.
 
-**Once collected, confirm:**
+### 1.3 Clarify & Expand Intent
+
+Based on user's initial response, ask 2-3 clarifying questions to understand:
+- **Context:** Where/when will this agent be used?
+- **Scope:** Narrow specialist or broad generalist?
+- **Value:** What makes this agent valuable vs. doing it yourself?
+
+Synthesize the conversation into a clear intent statement:
 ```
-Creating: {icon} {Name} - {title}
+Intent Summary:
+{synthesized_intent_paragraph}
 
-[c] Continue to persona development
+[c] Continue to build this agent
+[r] Restart - I want a different agent
 [q] Quit
 ```
+
+**If [r]:** Return to 1.2
+**If [c]:** Proceed to Step 2
 
 ---
 
@@ -67,25 +84,17 @@ Quality Check: Can you describe their job without mentioning personality?
 Example: "Expert Go developer specializing in CLI tools and testing patterns"
 ```
 
-### 2.2 Gather Intent
+### 2.2 Generate Role from Intent
 
-Ask:
-```
-What is this agent's primary expertise and purpose?
+Using the intent summary from Step 1, generate the role field that defines:
+- Expertise domain and knowledge areas
+- Capabilities and what they're expert in
+- Functional definition (NOT personality)
 
-Describe what they do, what they're expert in, and their core capabilities:
-```
+**Generation Prompt (internal):**
+"Based on this intent: {intent_summary}, generate a concise role statement that defines what this agent is expert in and what they do professionally."
 
-Wait for user response.
-
-### 2.3 Generate Role
-
-From user's description, generate a concise role statement (1-2 sentences):
-- Focus on expertise and capabilities
-- Keep functional, not personal
-- Be specific about domain knowledge
-
-### 2.4 Display & Review
+### 2.3 Display & Review
 
 ```
 ROLE:
@@ -300,9 +309,56 @@ Review these principles:
 
 ---
 
-## Step 6: Build & Celebrate
+## Step 6: Finalize Identity (Name, Title, Icon)
 
-### 6.1 Generate Complete YAML
+**Purpose:** Derive the agent's external identity from the persona we've built.
+
+### 6.1 Generate Suggestions
+
+Based on the complete persona (role + identity + communication + principles), generate suggestions:
+
+**Generation Prompt (internal):**
+"Based on this agent's complete persona, suggest:
+1. A name (lowercase, hyphen-separated, memorable, reflects expertise)
+2. A title (2-4 words, professional, clear role indication)
+3. An icon (single emoji that represents their expertise domain)"
+
+### 6.2 Present & Refine
+
+```
+Final Identity
+
+Based on your agent's persona, here are suggestions:
+
+  Name: {suggested_name}
+  Title: {suggested_title}
+  Icon: {suggested_icon}
+
+The name will be used for: /th:agents:{suggested_name}
+
+Options:
+  [c] Use these suggestions
+  [e] Edit name, title, or icon
+  [r] Regenerate different suggestions
+```
+
+### 6.3 Collect Changes (if needed)
+
+**If [e]:** Ask which field to change, get new value, redisplay
+**If [r]:** Generate new suggestions, redisplay
+**If [c]:** Validate and proceed to Step 7
+
+**Validation:**
+- Name: lowercase, alphanumeric with hyphens only
+- Name: must not exist in `.treehouse/agents/`
+- Icon: single emoji (default ◇ if invalid)
+- Title: non-empty string
+
+---
+
+## Step 7: Build & Celebrate
+
+### 7.1 Generate Complete YAML
 
 Create `{name}.agent.yaml`:
 
@@ -337,7 +393,7 @@ agent:
       tasks fully regardless of context remaining.
 ```
 
-### 6.2 Create Folder Structure
+### 7.2 Create Folder Structure
 
 Create:
 ```
@@ -348,7 +404,7 @@ Create:
 └── sessions/
 ```
 
-### 6.3 Create Knowledge Template
+### 7.3 Create Knowledge Template
 
 Create `knowledge.md`:
 
@@ -368,7 +424,7 @@ Create `knowledge.md`:
 Last Updated: {current_date}
 ```
 
-### 6.4 Display Success
+### 7.4 Display Success
 
 ```
 ✓ Created crew member: {name}
