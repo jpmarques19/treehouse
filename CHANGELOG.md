@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2](https://github.com/jpmarques19/treehouse/compare/v0.4.1...v0.4.2) (2026-01-08)
+
+
+### Features
+
+* **prune:** implement th prune command for orphan cleanup ([a2676f0](https://github.com/jpmarques19/treehouse/commit/a2676f03ceb1ee726aa5067292766d1afcd3d7b9))
+* **remove:** implement th remove command for nook cleanup ([e8f7180](https://github.com/jpmarques19/treehouse/commit/e8f7180ac4c36d5671246c9a267307cd65e43a8a))
+* **workflow:** add delete and prune menu actions to treehouse-list ([24d8b73](https://github.com/jpmarques19/treehouse/commit/24d8b73ed31637b96c590f2a91a8d574c4d28fb1))
+* **workflows:** add generic agent loader stub ([845b221](https://github.com/jpmarques19/treehouse/commit/845b221fad9fb24d74614bbaa15ac6d4ff0496c9))
+* **workflows:** add handoff and crew-add workflows for Epic 5 & 6 ([4cf2da8](https://github.com/jpmarques19/treehouse/commit/4cf2da8ef67b20f84a26106386c2ac34fcf71411))
+
+
+### Bug Fixes
+
+* address PR review security and code quality issues ([b88114b](https://github.com/jpmarques19/treehouse/commit/b88114ba8d4dba8a1847d725a5852e75063fdd99))
+
+
+### Code Refactoring
+
+* **workflows:** rename agent stub to agent-loader ([3996099](https://github.com/jpmarques19/treehouse/commit/3996099fc12ab27274b3095a25c79edddf23189e))
+* **workflows:** rename handoff workflow to checkpoint ([b3fe163](https://github.com/jpmarques19/treehouse/commit/b3fe163fdebe45c1064ece9f6249a305f234ef4e))
+* **workflows:** simplify Claude stub loader pattern ([0476c05](https://github.com/jpmarques19/treehouse/commit/0476c05d34dd3703a48f93a80c991dbacbefe4e2))
+
 ## [0.4.1](https://github.com/jpmarques19/treehouse/compare/v0.4.0...v0.4.1) (2026-01-08)
 
 
