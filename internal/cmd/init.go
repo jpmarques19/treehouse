@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/jpmarques19/treehouse/internal/assets"
 	"github.com/jpmarques19/treehouse/internal/git"
 	"github.com/jpmarques19/treehouse/internal/output"
 )
@@ -114,7 +115,29 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 		return nil, err
 	}
 	created = append(created, "crew/oak/")
-	created = append(created, "workflows/")
+
+	// Install workflows from embedded assets
+	workflowsPath := filepath.Join(basePath, "workflows")
+	installedWorkflows, err := installWorkflows(workflowsPath)
+	if err != nil {
+		_ = os.RemoveAll(basePath)
+		return nil, err
+	}
+	for _, w := range installedWorkflows {
+		created = append(created, "workflows/"+w)
+	}
+
+	// Install Claude commands
+	repoRoot := filepath.Dir(basePath) // basePath is .treehouse, parent is repo root
+	claudeCommandsPath := filepath.Join(repoRoot, ".claude", "commands", "th", "workflows")
+	installedCommands, err := installClaudeCommands(claudeCommandsPath)
+	if err != nil {
+		_ = os.RemoveAll(basePath)
+		return nil, err
+	}
+	for _, c := range installedCommands {
+		created = append(created, ".claude/commands/th/workflows/"+c)
+	}
 
 	return created, nil
 }
@@ -198,4 +221,72 @@ func createOakAgent(oakPath string) error {
 	}
 
 	return nil
+}
+
+// installWorkflows copies embedded workflow files to .treehouse/workflows/
+func installWorkflows(destPath string) ([]string, error) {
+	installed := []string{}
+
+	// Read workflow files from embedded assets
+	entries, err := assets.Workflows.ReadDir("workflows")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue // Skip claude/ subdirectory, handled separately
+		}
+		if filepath.Ext(entry.Name()) != ".md" {
+			continue
+		}
+
+		content, err := assets.Workflows.ReadFile("workflows/" + entry.Name())
+		if err != nil {
+			return nil, err
+		}
+
+		destFile := filepath.Join(destPath, entry.Name())
+		if err := os.WriteFile(destFile, content, 0644); err != nil {
+			return nil, err
+		}
+		installed = append(installed, entry.Name())
+	}
+
+	return installed, nil
+}
+
+// installClaudeCommands copies embedded Claude command stubs to .claude/commands/th/workflows/
+func installClaudeCommands(destPath string) ([]string, error) {
+	installed := []string{}
+
+	// Create directory structure
+	if err := os.MkdirAll(destPath, 0755); err != nil {
+		return nil, err
+	}
+
+	// Read Claude command files from embedded assets
+	entries, err := assets.Workflows.ReadDir("workflows/claude")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".md" {
+			continue
+		}
+
+		content, err := assets.Workflows.ReadFile("workflows/claude/" + entry.Name())
+		if err != nil {
+			return nil, err
+		}
+
+		destFile := filepath.Join(destPath, entry.Name())
+		if err := os.WriteFile(destFile, content, 0644); err != nil {
+			return nil, err
+		}
+		installed = append(installed, entry.Name())
+	}
+
+	return installed, nil
 }

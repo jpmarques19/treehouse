@@ -224,3 +224,72 @@ func TestOakAgentCreation(t *testing.T) {
 		t.Error("sessions/ directory was not created")
 	}
 }
+
+func TestWorkflowInstallation(t *testing.T) {
+	dir := testutil.SetupGitRepo(t)
+	testutil.ChdirWithCleanup(t, dir)
+
+	// Capture output
+	var buf bytes.Buffer
+	output.SetWriter(&buf)
+	t.Cleanup(func() { output.SetWriter(os.Stdout) })
+
+	// Run init command
+	exitCode := Execute([]string{"init"})
+	if exitCode != 0 {
+		t.Fatalf("init failed with exit code %d", exitCode)
+	}
+
+	// Verify workflows are installed
+	workflowsPath := filepath.Join(dir, ".treehouse", "workflows")
+	expectedWorkflows := []string{"huddle.md", "nook-fork.md", "treehouse-init.md", "treehouse-list.md"}
+
+	for _, wf := range expectedWorkflows {
+		wfPath := filepath.Join(workflowsPath, wf)
+		if _, err := os.Stat(wfPath); os.IsNotExist(err) {
+			t.Errorf("workflow %s was not installed", wf)
+		}
+	}
+}
+
+func TestClaudeCommandInstallation(t *testing.T) {
+	dir := testutil.SetupGitRepo(t)
+	testutil.ChdirWithCleanup(t, dir)
+
+	// Capture output
+	var buf bytes.Buffer
+	output.SetWriter(&buf)
+	t.Cleanup(func() { output.SetWriter(os.Stdout) })
+
+	// Run init command
+	exitCode := Execute([]string{"init"})
+	if exitCode != 0 {
+		t.Fatalf("init failed with exit code %d", exitCode)
+	}
+
+	// Verify Claude commands are installed
+	claudePath := filepath.Join(dir, ".claude", "commands", "th", "workflows")
+	expectedCommands := []string{"huddle.md", "nook-fork.md", "treehouse-init.md", "treehouse-list.md"}
+
+	for _, cmd := range expectedCommands {
+		cmdPath := filepath.Join(claudePath, cmd)
+		if _, err := os.Stat(cmdPath); os.IsNotExist(err) {
+			t.Errorf("Claude command %s was not installed", cmd)
+		}
+	}
+
+	// Verify stub content has loader directive
+	nookForkPath := filepath.Join(claudePath, "nook-fork.md")
+	content, err := os.ReadFile(nookForkPath)
+	if err != nil {
+		t.Fatalf("failed to read nook-fork.md: %v", err)
+	}
+
+	if !bytes.Contains(content, []byte("<workflow-loader>")) {
+		t.Error("nook-fork.md missing workflow-loader directive")
+	}
+
+	if !bytes.Contains(content, []byte(".treehouse/workflows/nook-fork.md")) {
+		t.Error("nook-fork.md has incorrect workflow path")
+	}
+}
