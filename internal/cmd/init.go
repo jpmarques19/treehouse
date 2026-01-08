@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/treehouse-cli/th/internal/git"
-	"github.com/treehouse-cli/th/internal/output"
+	"github.com/jpmarques19/treehouse/internal/git"
+	"github.com/jpmarques19/treehouse/internal/output"
 )
 
 // initExitCode stores the exit code for the init command

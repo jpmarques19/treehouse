@@ -1,4 +1,4 @@
-module github.com/treehouse-cli/th
+module github.com/jpmarques19/treehouse
 
 go 1.22.2
 

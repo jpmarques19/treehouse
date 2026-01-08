@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/treehouse-cli/th/internal/output"
+	"github.com/jpmarques19/treehouse/internal/output"
 )
 
 func TestRootCommand_NoArgs(t *testing.T) {
