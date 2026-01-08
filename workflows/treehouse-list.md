@@ -38,9 +38,11 @@ No nooks yet. Create your first with /nook-fork
 
 Otherwise, build the tree using this algorithm:
 
-1. **Group nooks by parent** - Create a map of parent -> children
-2. **Start from base branch** (main/master/dev)
-3. **Recursively render children** with proper indentation
+1. **Collect all nooks from all decks** - Create a unified map of all nooks
+2. **Group nooks by parent** - Create a map of parent -> children across all decks
+3. **Always start from base branch** (main/master/dev from `base.branch`) - This is the trunk/root
+4. **Recursively render children** with proper indentation, following all parent-child chains
+5. **Mark current nook** - Place `●` icon on the nook matching `current_nook` field, regardless of tree depth
 
 Tree characters:
 - `├──` for middle items (has siblings after)
@@ -49,19 +51,19 @@ Tree characters:
 - `    ` for empty space (after last item)
 
 Status icons:
-- `●` Active (current nook or has worktree)
-- `○` Inactive (tracked but no worktree)
-- `✗` Orphan (worktree exists but not tracked)
+- `●` Current nook (only one, marked from `current_nook` field)
+- `○` Inactive nook (has worktree but not current)
+- `✗` Orphan (tracked in decks.yaml but no worktree)
 
-Mark current nook (from `current_nook` field) as active.
+**Important:** The tree ALWAYS starts from the base branch trunk, showing the full dependency graph from root to all leaves, regardless of which nook is current.
 
-Example output:
+Example output (with current nook at depth 2):
 ```
 main
-├── ● a1b2-auth-spike
-│   └── ○ c3d4-jwt-variant
-├── ○ e5f6-redis-cache
-└── ○ g7h8-refactor-api
+├── ○ 8aa9-test-nook
+│   └── ○ 8aa9-sub-test-nook
+└── ● 8aa9-treehouse-planning (current)
+    └── ○ 6c81-auth-spike2
 ```
 
 ### Step 4: Render Summary Bar
@@ -77,7 +79,7 @@ Count nooks by status and display:
 
 ```
  [n] navigate     [d] delete      [p] prune
- [s] sleep        [r] refresh     [q] quit
+ [r] refresh      [q] quit
 ```
 
 ### Step 6: Handle Menu Selection
@@ -87,7 +89,6 @@ Wait for user input and handle:
 - **[n] Navigate**: Ask for nook ID, then `cd` to its worktree path
 - **[d] Delete**: Ask for nook ID, confirm, then run `th remove {nook-id}`
 - **[p] Prune**: Run `th prune` to clean up orphan worktrees
-- **[s] Sleep**: Ask for nook ID, remove worktree but keep branch tracking
 - **[r] Refresh**: Re-run `th list` and re-render tree
 - **[q] Quit**: Exit workflow
 
