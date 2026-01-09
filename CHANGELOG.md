@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6](https://github.com/jpmarques19/treehouse/compare/v0.4.5...v0.4.6) (2026-01-09)
+
+
+### Code Refactoring
+
+* agents → crew + hardcode base workspace path ([93ba8bc](https://github.com/jpmarques19/treehouse/commit/93ba8bcab432c9d12872ed4a472cc10cd3cabe9b))
+
 ## [0.4.5](https://github.com/jpmarques19/treehouse/compare/v0.4.4...v0.4.5) (2026-01-09)
 
 
