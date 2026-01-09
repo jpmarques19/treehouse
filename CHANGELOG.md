@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4](https://github.com/jpmarques19/treehouse/compare/v0.4.3...v0.4.4) (2026-01-09)
+
+
+### Features
+
+* **workflows:** enhance crew-add with progressive persona development ([390ab55](https://github.com/jpmarques19/treehouse/commit/390ab55e08ce08e65b47fd50ff96d49db82486f7))
+* **workflows:** integrate crew-add with th crew --add CLI ([acfba13](https://github.com/jpmarques19/treehouse/commit/acfba13334dddc769873e984151da7378c65f680))
+
+
+### Code Refactoring
+
+* **workflows:** simplify crew-add to generate-first pattern ([b649100](https://github.com/jpmarques19/treehouse/commit/b6491001b5e4098ff6cc9019cca87226929fdeeb))
+* **workflows:** transform crew-add to intent-driven discovery ([56e8afc](https://github.com/jpmarques19/treehouse/commit/56e8afcab343d950830cc267646662d957844cc0))
+
 ## [0.4.3](https://github.com/jpmarques19/treehouse/compare/v0.4.2...v0.4.3) (2026-01-09)
 
 
