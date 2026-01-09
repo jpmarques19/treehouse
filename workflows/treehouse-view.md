@@ -1,4 +1,4 @@
-# Treehouse List Workflow
+# Treehouse View Workflow
 
 Display workspace lineage as a visual tree with status icons and action menu.
 

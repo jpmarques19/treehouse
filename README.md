@@ -92,7 +92,7 @@ All treehouse operations happen through Claude workflows:
 | `/th:crew:{name}` | Load a crew member |
 | `/th:workflows:nook-fork` | Create a focused worktree |
 | `/th:workflows:checkpoint` | Save current context |
-| `/th:workflows:treehouse-list` | View all nooks |
+| `/th:workflows:treehouse-view` | View all nooks |
 | `/th:workflows:crew-add` | Create a new crew member |
 | `/th:workflows:huddle` | Multi-agent discussion |
 
