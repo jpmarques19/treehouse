@@ -49,10 +49,10 @@ func TestInitCommand_Success(t *testing.T) {
 		t.Error("decks.yaml was not created")
 	}
 
-	// Verify agents/oak folder was created
-	oakPath := filepath.Join(treehousePath, "agents", "oak")
+	// Verify crew/oak folder was created
+	oakPath := filepath.Join(treehousePath, "crew", "oak")
 	if _, err := os.Stat(oakPath); os.IsNotExist(err) {
-		t.Error("agents/oak folder was not created")
+		t.Error("crew/oak folder was not created")
 	}
 
 	// Verify oak.agent.yaml was created
@@ -189,7 +189,7 @@ func TestOakAgentCreation(t *testing.T) {
 		t.Fatalf("init failed with exit code %d", exitCode)
 	}
 
-	oakPath := filepath.Join(dir, ".treehouse", "agents", "oak")
+	oakPath := filepath.Join(dir, ".treehouse", "crew", "oak")
 
 	// Verify oak.agent.yaml exists and contains required fields
 	agentPath := filepath.Join(oakPath, "oak.agent.yaml")

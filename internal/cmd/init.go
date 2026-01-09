@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/jpmarques19/treehouse/internal/assets"
@@ -85,10 +86,10 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 	dirs := []string{
 		basePath,
 		filepath.Join(basePath, "nooks"),
-		filepath.Join(basePath, "agents"),
-		filepath.Join(basePath, "agents", "oak"),
-		filepath.Join(basePath, "agents", "oak", "memories"),
-		filepath.Join(basePath, "agents", "oak", "sessions"),
+		filepath.Join(basePath, "crew"),
+		filepath.Join(basePath, "crew", "oak"),
+		filepath.Join(basePath, "crew", "oak", "memories"),
+		filepath.Join(basePath, "crew", "oak", "sessions"),
 		filepath.Join(basePath, "workflows"),
 	}
 
@@ -110,11 +111,11 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 	created = append(created, "nooks/")
 
 	// Create Oak agent files
-	if err := createOakAgent(filepath.Join(basePath, "agents", "oak")); err != nil {
+	if err := createOakAgent(filepath.Join(basePath, "crew", "oak")); err != nil {
 		_ = os.RemoveAll(basePath)
 		return nil, err
 	}
-	created = append(created, "agents/oak/")
+	created = append(created, "crew/oak/")
 
 	// Install workflows from embedded assets
 	workflowsPath := filepath.Join(basePath, "workflows")
@@ -130,7 +131,7 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 	// Install Claude commands
 	repoRoot := filepath.Dir(basePath) // basePath is .treehouse, parent is repo root
 	claudeCommandsPath := filepath.Join(repoRoot, ".claude", "commands", "th", "workflows")
-	installedCommands, err := installClaudeCommands(claudeCommandsPath)
+	installedCommands, err := installClaudeCommands(claudeCommandsPath, repoRoot)
 	if err != nil {
 		_ = os.RemoveAll(basePath)
 		return nil, err
@@ -257,7 +258,8 @@ func installWorkflows(destPath string) ([]string, error) {
 }
 
 // installClaudeCommands copies embedded Claude command stubs to .claude/commands/th/workflows/
-func installClaudeCommands(destPath string) ([]string, error) {
+// and replaces the {{TREEHOUSE_BASE_WORKSPACE}} placeholder with the actual repoRoot path
+func installClaudeCommands(destPath string, repoRoot string) ([]string, error) {
 	installed := []string{}
 
 	// Create directory structure
@@ -281,8 +283,12 @@ func installClaudeCommands(destPath string) ([]string, error) {
 			return nil, err
 		}
 
+		// Replace placeholder with actual repoRoot path
+		contentStr := string(content)
+		contentStr = strings.Replace(contentStr, "{{TREEHOUSE_BASE_WORKSPACE}}", repoRoot, -1)
+
 		destFile := filepath.Join(destPath, entry.Name())
-		if err := os.WriteFile(destFile, content, 0644); err != nil {
+		if err := os.WriteFile(destFile, []byte(contentStr), 0644); err != nil {
 			return nil, err
 		}
 		installed = append(installed, entry.Name())

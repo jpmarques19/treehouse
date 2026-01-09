@@ -201,7 +201,7 @@ Based on the complete persona, generate:
 **If [r]:** Generate new suggestions, redisplay
 **If [c]:** Validate and proceed to Step 7
 
-**Validation:** Name must be unique in `.treehouse/agents/`
+**Validation:** Name must be unique in `.treehouse/crew/`
 
 ---
 
@@ -227,7 +227,7 @@ Compile all session data into JSON config:
 
 ### 7.2 Create Agent via CLI
 
-Run: `th crew --add {name} '{json_config}'`
+Run: `th crew add {name} '{json_config}'`
 
 Parse JSON response.
 
@@ -247,8 +247,8 @@ Show error details and offer to retry.
   {icon} {Name} - {title}
 
   Files created:
-    .treehouse/agents/{name}/
-    .treehouse/.claude/commands/th/crew/{name}.md
+    .treehouse/crew/{name}/
+    .claude/commands/th/crew/{name}.md
 
 Activate with: /th:crew:{name}
 ```
@@ -258,7 +258,7 @@ Activate with: /th:crew:{name}
 ## Dependencies
 
 - Treehouse initialized (`th init`)
-- `th crew --add` CLI command available
+- `th crew add` CLI command available
 
 ## Design Notes
 
@@ -266,7 +266,7 @@ Activate with: /th:crew:{name}
 This workflow implements progressive development within a single file, maintaining Treehouse's architectural principle while achieving iterative refinement.
 
 **CLI Delegation:**
-File creation is delegated to `th crew --add` command, following the pattern of other workflows (treehouse-init → th init, nook-fork → th fork).
+File creation is delegated to `th crew add` command, following the pattern of other workflows (treehouse-init → th init, nook-fork → th fork).
 
 **Simple Review Pattern:**
 Uses [c] Continue / [e] Edit for simplicity, avoiding complex menu systems. Treehouse workflows are focused and minimal.
