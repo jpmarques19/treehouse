@@ -56,7 +56,7 @@ func TestCrewAdd_Success(t *testing.T) {
 	}
 
 	// Verify agent folder was created
-	agentPath := filepath.Join(dir, ".treehouse", "agents", "sparrow")
+	agentPath := filepath.Join(dir, ".treehouse", "crew", "sparrow")
 	if _, err := os.Stat(agentPath); os.IsNotExist(err) {
 		t.Error("agent folder was not created")
 	}
@@ -108,7 +108,7 @@ func TestCrewAdd_AgentYAMLContent(t *testing.T) {
 	}
 
 	// Read agent YAML
-	agentYAML := filepath.Join(dir, ".treehouse", "agents", "reviewer", "reviewer.agent.yaml")
+	agentYAML := filepath.Join(dir, ".treehouse", "crew", "reviewer", "reviewer.agent.yaml")
 	content, err := os.ReadFile(agentYAML)
 	if err != nil {
 		t.Fatalf("failed to read agent YAML: %v", err)
@@ -174,7 +174,7 @@ func TestCrewAdd_AlreadyExists(t *testing.T) {
 	}
 
 	// Verify only one agent folder exists
-	agentPath := filepath.Join(dir, ".treehouse", "agents", "sparrow")
+	agentPath := filepath.Join(dir, ".treehouse", "crew", "sparrow")
 	if _, err := os.Stat(agentPath); os.IsNotExist(err) {
 		t.Error("original agent folder should still exist")
 	}
@@ -280,7 +280,7 @@ func TestCrewAdd_DefaultIcon(t *testing.T) {
 	}
 
 	// Read agent YAML and check for default icon
-	agentYAML := filepath.Join(dir, ".treehouse", "agents", "sparrow", "sparrow.agent.yaml")
+	agentYAML := filepath.Join(dir, ".treehouse", "crew", "sparrow", "sparrow.agent.yaml")
 	content, err := os.ReadFile(agentYAML)
 	if err != nil {
 		t.Fatalf("failed to read agent YAML: %v", err)
@@ -308,7 +308,7 @@ func TestCrewAdd_NameSanitization(t *testing.T) {
 	}
 
 	// Should be sanitized to "code-reviewer"
-	agentPath := filepath.Join(dir, ".treehouse", "agents", "code-reviewer")
+	agentPath := filepath.Join(dir, ".treehouse", "crew", "code-reviewer")
 	if _, err := os.Stat(agentPath); os.IsNotExist(err) {
 		t.Error("agent folder was not created with sanitized name")
 	}

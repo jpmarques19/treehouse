@@ -113,7 +113,7 @@ func runCrewAdd(name string, configJSON string) int {
 	}
 
 	// 5. Check if agent already exists
-	agentPath := filepath.Join(thInfo.TreehousePath, "agents", sanitizedName)
+	agentPath := filepath.Join(thInfo.TreehousePath, "crew", sanitizedName)
 	if _, err := os.Stat(agentPath); err == nil {
 		output.PrintError("CREW_ALREADY_EXISTS", fmt.Sprintf("Crew member '%s' already exists", sanitizedName))
 		return 1
@@ -192,7 +192,7 @@ func validateCrewConfig(config *CrewConfig) error {
 
 // createCrewStructure creates the agent folder and files
 func createCrewStructure(treehousePath, name string, config *CrewConfig) error {
-	agentPath := filepath.Join(treehousePath, "agents", name)
+	agentPath := filepath.Join(treehousePath, "crew", name)
 
 	// Create directories
 	dirs := []string{
@@ -327,7 +327,9 @@ Load and activate the %s agent.
 `+"```"+`
 /th:workflows:agent-loader %s
 `+"```"+`
-`, icon, displayName, title, displayName, name)
+
+TREEHOUSE_BASE_WORKSPACE=%s
+`, icon, displayName, title, displayName, name, repoRoot)
 
 	commandPath := filepath.Join(commandDir, name+".md")
 	if err := os.WriteFile(commandPath, []byte(commandMD), 0644); err != nil {
