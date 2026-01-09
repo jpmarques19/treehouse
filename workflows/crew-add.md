@@ -207,93 +207,50 @@ Based on the complete persona, generate:
 
 ## Step 7: Build & Celebrate
 
-### 7.1 Generate Complete YAML
+### 7.1 Compile JSON Config
 
-Create `{name}.agent.yaml`:
+Compile all session data into JSON config:
 
-```yaml
-agent:
-  metadata:
-    name: "{Name}"
-    title: "{title}"
-    icon: "{icon}"
-
-  persona:
-    role: "{generated_role}"
-
-    identity: |
-      {generated_identity}
-
-    communication_style: |
-      {generated_communication_style}
-
-    principles:
-{generated_principles_as_yaml_list}
-
-  critical_actions:
-    - "Detect current nook from git worktree folder name"
-    - "Construct paths: AGENT_FOLDER, MEMORY_FILE, SESSION_FILE"
-    - "Load knowledge.md for global cross-nook context"
-    - "Load memories/{nook-id}.md for nook-specific work context"
-    - "Load sessions/{nook-id}.md for session restoration"
-    - |
-      Your context window will be automatically compacted as it approaches
-      its limit. Save progress to memory before context refresh. Complete
-      tasks fully regardless of context remaining.
+```json
+{
+  "name": "{name}",
+  "title": "{title}",
+  "icon": "{icon}",
+  "persona": {
+    "role": "{generated_role}",
+    "identity": "{generated_identity}",
+    "communication_style": "{generated_communication_style}",
+    "principles": ["{principle_1}", "{principle_2}", ...]
+  }
+}
 ```
 
-### 7.2 Create Folder Structure
+### 7.2 Create Agent via CLI
 
-Create:
-```
-.treehouse/agents/{name}/
-├── {name}.agent.yaml
-├── knowledge.md
-├── memories/
-└── sessions/
-```
+Run: `th crew --add {name} '{json_config}'`
 
-### 7.3 Create Knowledge Template
+Parse JSON response.
 
-Create `knowledge.md`:
+**If error `CREW_ALREADY_EXISTS`:**
+Show `✗ Crew member '{name}' already exists` and offer to return to Step 6 to choose different name.
 
-```markdown
-# {Name} - Long-term Knowledge
+**If error `CREW_INVALID_CONFIG`:**
+Show error details and offer to retry.
 
-> Cross-nook persistent memory
+**If success:** Proceed to celebration.
 
----
-
-## Learnings
-
-(Add global learnings that apply across all nooks)
-
----
-
-Last Updated: {current_date}
-```
-
-### 7.4 Display Success
+### 7.3 Display Success
 
 ```
 ✓ Created crew member: {name}
 
   {icon} {Name} - {title}
 
-  Folder: .treehouse/agents/{name}/
-  Files:
-    - {name}.agent.yaml
-    - knowledge.md
-    - memories/
-    - sessions/
+  Files created:
+    .treehouse/agents/{name}/
+    .treehouse/.claude/commands/th/crew/{name}.md
 
-Persona Summary:
-  Role: {generated_role}
-  Identity: {generated_identity_first_sentence}
-  Communication: {generated_communication_first_sentence}
-  Principles: {count} principles defined
-
-Activate with: /th:agents:{name}
+Activate with: /th:crew:{name}
 ```
 
 ---
@@ -301,15 +258,15 @@ Activate with: /th:agents:{name}
 ## Dependencies
 
 - Treehouse initialized (`th init`)
-- Write access to `.treehouse/agents/`
+- `th crew --add` CLI command available
 
 ## Design Notes
 
 **Single-File Architecture:**
 This workflow implements progressive development within a single file, maintaining Treehouse's architectural principle while achieving iterative refinement.
 
+**CLI Delegation:**
+File creation is delegated to `th crew --add` command, following the pattern of other workflows (treehouse-init → th init, nook-fork → th fork).
+
 **Simple Review Pattern:**
 Uses [c] Continue / [e] Edit for simplicity, avoiding complex menu systems. Treehouse workflows are focused and minimal.
-
-**Quality Through Iteration:**
-Each persona field is developed independently, reviewed, and refined before proceeding. This ensures thoughtful agent design.
