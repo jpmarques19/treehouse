@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.7](https://github.com/jpmarques19/treehouse/compare/v0.4.6...v0.4.7) (2026-01-09)
+
+
+### Features
+
+* **init:** add Oak crew stub and gitignore entries, rename treehouse-list to treehouse-view ([#51](https://github.com/jpmarques19/treehouse/issues/51)) ([ab870ea](https://github.com/jpmarques19/treehouse/commit/ab870ea9b61b286ed42410143e5999ef1b41c819))
+
 ## [0.4.6](https://github.com/jpmarques19/treehouse/compare/v0.4.5...v0.4.6) (2026-01-09)
 
 
