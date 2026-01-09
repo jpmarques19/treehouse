@@ -57,6 +57,7 @@ func Execute(args []string) int {
 	listExitCode = 0
 	removeExitCode = 0
 	pruneExitCode = 0
+	crewExitCode = 0
 
 	rootCmd.SetArgs(args)
 
@@ -95,6 +96,11 @@ func Execute(args []string) int {
 	// Check if prune command was executed and return its exit code
 	if len(args) > 0 && args[0] == "prune" {
 		return pruneExitCode
+	}
+
+	// Check if crew command was executed and return its exit code
+	if len(args) > 0 && args[0] == "crew" {
+		return crewExitCode
 	}
 
 	return 0
