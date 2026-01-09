@@ -242,7 +242,7 @@ func TestWorkflowInstallation(t *testing.T) {
 
 	// Verify workflows are installed
 	workflowsPath := filepath.Join(dir, ".treehouse", "workflows")
-	expectedWorkflows := []string{"huddle.md", "nook-fork.md", "treehouse-init.md", "treehouse-list.md"}
+	expectedWorkflows := []string{"huddle.md", "nook-fork.md", "treehouse-init.md", "treehouse-view.md"}
 
 	for _, wf := range expectedWorkflows {
 		wfPath := filepath.Join(workflowsPath, wf)
@@ -269,7 +269,7 @@ func TestClaudeCommandInstallation(t *testing.T) {
 
 	// Verify Claude commands are installed
 	claudePath := filepath.Join(dir, ".claude", "commands", "th", "workflows")
-	expectedCommands := []string{"huddle.md", "nook-fork.md", "treehouse-init.md", "treehouse-list.md"}
+	expectedCommands := []string{"huddle.md", "nook-fork.md", "treehouse-init.md", "treehouse-view.md"}
 
 	for _, cmd := range expectedCommands {
 		cmdPath := filepath.Join(claudePath, cmd)
@@ -291,5 +291,174 @@ func TestClaudeCommandInstallation(t *testing.T) {
 
 	if !bytes.Contains(content, []byte(".treehouse/workflows/nook-fork.md")) {
 		t.Error("nook-fork.md has incorrect workflow path")
+	}
+}
+
+func TestOakCommandStubCreation(t *testing.T) {
+	dir := testutil.SetupGitRepo(t)
+	testutil.ChdirWithCleanup(t, dir)
+
+	// Capture output
+	var buf bytes.Buffer
+	output.SetWriter(&buf)
+	t.Cleanup(func() { output.SetWriter(os.Stdout) })
+
+	// Run init command
+	exitCode := Execute([]string{"init"})
+	if exitCode != 0 {
+		t.Fatalf("init failed with exit code %d", exitCode)
+	}
+
+	// Verify Oak command stub was created
+	oakStubPath := filepath.Join(dir, ".claude", "commands", "th", "crew", "oak.md")
+	if _, err := os.Stat(oakStubPath); os.IsNotExist(err) {
+		t.Error("Oak command stub was not created at .claude/commands/th/crew/oak.md")
+	}
+
+	// Verify content has agent-loader reference
+	content, err := os.ReadFile(oakStubPath)
+	if err != nil {
+		t.Fatalf("failed to read oak.md: %v", err)
+	}
+
+	if !bytes.Contains(content, []byte("agent-loader oak")) {
+		t.Error("oak.md missing agent-loader reference")
+	}
+
+	if !bytes.Contains(content, []byte("Oak")) {
+		t.Error("oak.md missing Oak title")
+	}
+}
+
+func TestGitignoreCreation(t *testing.T) {
+	dir := testutil.SetupGitRepo(t)
+	testutil.ChdirWithCleanup(t, dir)
+
+	// Capture output
+	var buf bytes.Buffer
+	output.SetWriter(&buf)
+	t.Cleanup(func() { output.SetWriter(os.Stdout) })
+
+	// Run init command
+	exitCode := Execute([]string{"init"})
+	if exitCode != 0 {
+		t.Fatalf("init failed with exit code %d", exitCode)
+	}
+
+	// Verify .gitignore was created with treehouse entries
+	gitignorePath := filepath.Join(dir, ".gitignore")
+	content, err := os.ReadFile(gitignorePath)
+	if err != nil {
+		t.Fatalf("failed to read .gitignore: %v", err)
+	}
+
+	if !bytes.Contains(content, []byte(".treehouse/")) {
+		t.Error(".gitignore missing .treehouse/ entry")
+	}
+
+	if !bytes.Contains(content, []byte(".claude/commands/th")) {
+		t.Error(".gitignore missing .claude/commands/th entry")
+	}
+
+	if !bytes.Contains(content, []byte("# treehouse managed")) {
+		t.Error(".gitignore missing treehouse managed marker")
+	}
+}
+
+func TestGitignoreIdempotent(t *testing.T) {
+	dir := testutil.SetupGitRepo(t)
+	testutil.ChdirWithCleanup(t, dir)
+
+	// Create existing .gitignore with treehouse entries
+	existingContent := `# my project
+node_modules/
+
+# treehouse managed
+.treehouse/
+.claude/commands/th
+`
+	gitignorePath := filepath.Join(dir, ".gitignore")
+	if err := os.WriteFile(gitignorePath, []byte(existingContent), 0644); err != nil {
+		t.Fatalf("failed to create .gitignore: %v", err)
+	}
+
+	// Capture output
+	var buf bytes.Buffer
+	output.SetWriter(&buf)
+	t.Cleanup(func() { output.SetWriter(os.Stdout) })
+
+	// Run init command
+	exitCode := Execute([]string{"init"})
+	if exitCode != 0 {
+		t.Fatalf("init failed with exit code %d", exitCode)
+	}
+
+	// Verify .gitignore was not duplicated
+	content, err := os.ReadFile(gitignorePath)
+	if err != nil {
+		t.Fatalf("failed to read .gitignore: %v", err)
+	}
+
+	// Count occurrences of treehouse marker
+	count := bytes.Count(content, []byte("# treehouse managed"))
+	if count != 1 {
+		t.Errorf("expected 1 treehouse managed marker, found %d", count)
+	}
+
+	// Parse response to verify gitignore_updated is false
+	var resp output.Response
+	if err := json.Unmarshal(buf.Bytes(), &resp); err != nil {
+		t.Fatalf("failed to parse JSON response: %v", err)
+	}
+
+	if data, ok := resp.Data.(map[string]interface{}); ok {
+		if updated, ok := data["gitignore_updated"].(bool); ok && updated {
+			t.Error("expected gitignore_updated to be false when entries already exist")
+		}
+	}
+}
+
+func TestGitignoreAppendToExisting(t *testing.T) {
+	dir := testutil.SetupGitRepo(t)
+	testutil.ChdirWithCleanup(t, dir)
+
+	// Create existing .gitignore without treehouse entries
+	existingContent := `# my project
+node_modules/
+*.log`
+	gitignorePath := filepath.Join(dir, ".gitignore")
+	if err := os.WriteFile(gitignorePath, []byte(existingContent), 0644); err != nil {
+		t.Fatalf("failed to create .gitignore: %v", err)
+	}
+
+	// Capture output
+	var buf bytes.Buffer
+	output.SetWriter(&buf)
+	t.Cleanup(func() { output.SetWriter(os.Stdout) })
+
+	// Run init command
+	exitCode := Execute([]string{"init"})
+	if exitCode != 0 {
+		t.Fatalf("init failed with exit code %d", exitCode)
+	}
+
+	// Verify .gitignore was appended
+	content, err := os.ReadFile(gitignorePath)
+	if err != nil {
+		t.Fatalf("failed to read .gitignore: %v", err)
+	}
+
+	// Check existing content is preserved
+	if !bytes.Contains(content, []byte("node_modules/")) {
+		t.Error("existing .gitignore content was lost")
+	}
+
+	// Check treehouse entries were added
+	if !bytes.Contains(content, []byte(".treehouse/")) {
+		t.Error(".gitignore missing .treehouse/ entry after append")
+	}
+
+	if !bytes.Contains(content, []byte(".claude/commands/th")) {
+		t.Error(".gitignore missing .claude/commands/th entry after append")
 	}
 }

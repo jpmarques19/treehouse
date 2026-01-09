@@ -62,17 +62,25 @@ func runInit() int {
 		return 1
 	}
 
-	// 4. Create folder structure
+	// 4. Update .gitignore before creating structure
+	gitignoreUpdated, err := updateGitignore(repoInfo.Root)
+	if err != nil {
+		output.PrintError("INIT_GITIGNORE_FAILED", err.Error())
+		return 1
+	}
+
+	// 5. Create folder structure
 	created, err := createTreehouseStructure(treehousePath)
 	if err != nil {
 		output.PrintError("INIT_CREATE_FAILED", err.Error())
 		return 1
 	}
 
-	// 5. Return success
+	// 6. Return success
 	output.PrintSuccess(map[string]interface{}{
-		"path":    treehousePath,
-		"created": created,
+		"path":             treehousePath,
+		"created":          created,
+		"gitignore_updated": gitignoreUpdated,
 	})
 	return 0
 }
@@ -139,6 +147,14 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 	for _, c := range installedCommands {
 		created = append(created, ".claude/commands/th/workflows/"+c)
 	}
+
+	// Create Oak crew command stub
+	oakCommandPath, err := createOakCommandStub(repoRoot)
+	if err != nil {
+		_ = os.RemoveAll(basePath)
+		return nil, err
+	}
+	created = append(created, oakCommandPath)
 
 	return created, nil
 }
@@ -295,4 +311,92 @@ func installClaudeCommands(destPath string, repoRoot string) ([]string, error) {
 	}
 
 	return installed, nil
+}
+
+// createOakCommandStub creates the Claude command stub for Oak crew member
+func createOakCommandStub(repoRoot string) (string, error) {
+	// Create directory structure
+	commandDir := filepath.Join(repoRoot, ".claude", "commands", "th", "crew")
+	if err := os.MkdirAll(commandDir, 0755); err != nil {
+		return "", err
+	}
+
+	commandMD := `# 🌳 Oak
+
+Treehouse Assistant
+
+Load and activate the Oak agent.
+
+## Activation
+
+` + "```" + `
+/th:workflows:agent-loader oak
+` + "```" + `
+`
+
+	commandPath := filepath.Join(commandDir, "oak.md")
+	if err := os.WriteFile(commandPath, []byte(commandMD), 0644); err != nil {
+		return "", err
+	}
+
+	return ".claude/commands/th/crew/oak.md", nil
+}
+
+// treehouseGitignoreMarker is the marker used to identify the treehouse managed block
+const treehouseGitignoreMarker = "# treehouse managed"
+
+// treehouseGitignoreBlock is the content added to .gitignore
+const treehouseGitignoreBlock = `# treehouse managed
+.treehouse/
+.claude/commands/th
+`
+
+// updateGitignore adds treehouse entries to .gitignore if not already present
+// Returns true if the file was updated, false if entries already existed
+func updateGitignore(repoRoot string) (bool, error) {
+	gitignorePath := filepath.Join(repoRoot, ".gitignore")
+
+	// Check if .gitignore exists
+	content, err := os.ReadFile(gitignorePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// Create new .gitignore with our block
+			if err := os.WriteFile(gitignorePath, []byte(treehouseGitignoreBlock), 0644); err != nil {
+				return false, err
+			}
+			return true, nil
+		}
+		return false, err
+	}
+
+	// Check if treehouse entries already exist
+	if containsTreehouseEntries(string(content)) {
+		return false, nil // Already present, no update needed
+	}
+
+	// Append treehouse block to existing content
+	newContent := string(content)
+	if len(newContent) > 0 && newContent[len(newContent)-1] != '\n' {
+		newContent += "\n"
+	}
+	newContent += "\n" + treehouseGitignoreBlock
+
+	if err := os.WriteFile(gitignorePath, []byte(newContent), 0644); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// containsTreehouseEntries checks if the gitignore content already has treehouse entries
+func containsTreehouseEntries(content string) bool {
+	// Check for the managed marker or the actual entries
+	if strings.Contains(content, treehouseGitignoreMarker) {
+		return true
+	}
+	// Also check for the individual entries in case added manually
+	if strings.Contains(content, ".treehouse/") && strings.Contains(content, ".claude/commands/th") {
+		return true
+	}
+	return false
 }
