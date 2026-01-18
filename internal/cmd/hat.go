@@ -8,6 +8,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/jpmarques19/treehouse/internal/output"
 	"github.com/jpmarques19/treehouse/internal/treehouse"
 )
@@ -178,7 +181,8 @@ func createHatFile(treehousePath, name string, config *HatConfig) error {
 		return err
 	}
 
-	displayName := strings.Title(strings.ReplaceAll(config.Name, "-", " "))
+	titleCaser := cases.Title(language.English)
+	displayName := titleCaser.String(strings.ReplaceAll(config.Name, "-", " "))
 	if config.Name == "" {
 		displayName = "Hat"
 	}
@@ -210,7 +214,8 @@ func createHatCommandStub(repoRoot, name, title, icon string) (string, error) {
 		return "", err
 	}
 
-	displayName := strings.Title(strings.ReplaceAll(name, "-", " "))
+	titleCaser := cases.Title(language.English)
+	displayName := titleCaser.String(strings.ReplaceAll(name, "-", " "))
 
 	commandMD := fmt.Sprintf(`# %s %s
 
