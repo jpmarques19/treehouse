@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0](https://github.com/jpmarques19/treehouse/compare/v0.4.7...v0.5.0) (2026-01-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* **hats:** Hats are now .md files instead of folders with knowledge.md
+
+### Features
+
+* **boards:** add boards system for nook-specific learnings ([adcf1ea](https://github.com/jpmarques19/treehouse/commit/adcf1ea15b05b882cc8473b5f9d1f939f81e1f02))
+* **hats:** simplify hats to single .md files ([93ab47e](https://github.com/jpmarques19/treehouse/commit/93ab47efba18c2f0e60718ebf3fa3c098301b407))
+
+
+### Bug Fixes
+
+* **hats:** replace deprecated strings.Title with cases.Title ([c3cd7d3](https://github.com/jpmarques19/treehouse/commit/c3cd7d384a4b05f4147443727ac3c0dc0c575de2))
+
 ## [0.4.7](https://github.com/jpmarques19/treehouse/compare/v0.4.6...v0.4.7) (2026-01-09)
 
 
