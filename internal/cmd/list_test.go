@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/jpmarques19/treehouse/internal/output"
+	"github.com/jpmarques19/treehouse/internal/testutil"
 )
 
 // runGitCommand runs a git command in the specified directory
@@ -24,9 +25,7 @@ func runGitCommand(t *testing.T, dir string, args ...string) {
 func TestListCommand_NotInitialized(t *testing.T) {
 	// Create temp directory without .treehouse folder
 	tempDir := t.TempDir()
-	if err := os.Chdir(tempDir); err != nil {
-		t.Fatalf("Failed to change directory: %v", err)
-	}
+	testutil.ChdirWithCleanup(t, tempDir)
 
 	// Capture output
 	var buf bytes.Buffer
@@ -74,9 +73,7 @@ func TestListCommand_EmptyDecks(t *testing.T) {
 		t.Fatalf("Failed to create decks.yaml: %v", err)
 	}
 
-	if err := os.Chdir(tempDir); err != nil {
-		t.Fatalf("Failed to change directory: %v", err)
-	}
+	testutil.ChdirWithCleanup(t, tempDir)
 
 	// Initialize git repo (required for GetCurrentBranch and GetCurrentCommit)
 	runGitCommand(t, tempDir, "init")
@@ -162,9 +159,7 @@ func TestListCommand_WithDecks(t *testing.T) {
 		t.Fatalf("Failed to create nook folder: %v", err)
 	}
 
-	if err := os.Chdir(tempDir); err != nil {
-		t.Fatalf("Failed to change directory: %v", err)
-	}
+	testutil.ChdirWithCleanup(t, tempDir)
 
 	// Initialize git repo
 	runGitCommand(t, tempDir, "init")
@@ -267,9 +262,7 @@ func TestListCommand_OrphanNook(t *testing.T) {
 
 	// NOTE: We do NOT create the nook folder - making it orphan
 
-	if err := os.Chdir(tempDir); err != nil {
-		t.Fatalf("Failed to change directory: %v", err)
-	}
+	testutil.ChdirWithCleanup(t, tempDir)
 
 	// Initialize git repo
 	runGitCommand(t, tempDir, "init")

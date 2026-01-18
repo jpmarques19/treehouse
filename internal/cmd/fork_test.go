@@ -67,6 +67,20 @@ func setupForkTestRepo(t *testing.T) string {
 		t.Fatalf("Failed to create decks.yaml: %v", err)
 	}
 
+	// Create .claude/commands/th directory (simulate base repo with th commands)
+	thCommandsPath := filepath.Join(dir, ".claude", "commands", "th")
+	if err := os.MkdirAll(thCommandsPath, 0755); err != nil {
+		t.Fatalf("Failed to create .claude/commands/th: %v", err)
+	}
+	// Create a marker file to verify symlink works
+	markerPath := filepath.Join(thCommandsPath, "workflows", "test.md")
+	if err := os.MkdirAll(filepath.Dir(markerPath), 0755); err != nil {
+		t.Fatalf("Failed to create workflows dir: %v", err)
+	}
+	if err := os.WriteFile(markerPath, []byte("test"), 0644); err != nil {
+		t.Fatalf("Failed to create marker file: %v", err)
+	}
+
 	return dir
 }
 
@@ -256,6 +270,25 @@ func TestForkCommand_Success(t *testing.T) {
 	// Verify worktree was created
 	if _, err := os.Stat(resp.Data.Worktree); os.IsNotExist(err) {
 		t.Errorf("Worktree path does not exist: %s", resp.Data.Worktree)
+	}
+
+	// Verify .claude/commands/th symlink was created
+	symlinkPath := filepath.Join(resp.Data.Worktree, ".claude", "commands", "th")
+	linkTarget, err := os.Readlink(symlinkPath)
+	if err != nil {
+		t.Errorf("Symlink not created at %s: %v", symlinkPath, err)
+	} else {
+		// Verify symlink target is correct relative path
+		expectedTarget := filepath.Join("..", "..", "..", "..", "..", ".claude", "commands", "th")
+		if linkTarget != expectedTarget {
+			t.Errorf("Symlink target = %q, want %q", linkTarget, expectedTarget)
+		}
+	}
+
+	// Verify symlink actually works (can read through it)
+	markerPath := filepath.Join(symlinkPath, "workflows", "test.md")
+	if _, err := os.Stat(markerPath); os.IsNotExist(err) {
+		t.Errorf("Cannot read through symlink - marker file not found at %s", markerPath)
 	}
 
 	// Clean up worktree
