@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -153,6 +156,12 @@ func runFork(name string) int {
 		return 3
 	}
 
+	// 9b. Set up Claude commands symlink (if th commands exist in base repo)
+	if err := setupClaudeCommandsSymlink(thInfo.RepoRoot, worktreePath); err != nil {
+		// Log warning but don't fail - th commands are optional
+		// Could add debug logging here if needed
+	}
+
 	// 10. Determine deck ID
 	// If forking from base branch (main/dev), create new deck
 	// If forking from existing nook, use same deck
@@ -200,4 +209,34 @@ func runFork(name string) int {
 		Worktree: worktreePath,
 	})
 	return 0
+}
+
+// setupClaudeCommandsSymlink creates a symlink in the nook for th Claude commands
+// pointing back to the base repo's .claude/commands/th directory.
+// Returns nil if source doesn't exist (th commands are optional).
+func setupClaudeCommandsSymlink(repoRoot, nookPath string) error {
+	// Check if source exists
+	sourcePath := filepath.Join(repoRoot, ".claude", "commands", "th")
+	if _, err := os.Stat(sourcePath); os.IsNotExist(err) {
+		return nil // th commands don't exist in base repo, skip
+	}
+
+	// Create .claude/commands/ directory in nook
+	nookCommandsDir := filepath.Join(nookPath, ".claude", "commands")
+	if err := os.MkdirAll(nookCommandsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create .claude/commands: %w", err)
+	}
+
+	// Create relative symlink
+	// From: {nook}/.claude/commands/th
+	// To:   {repo}/.claude/commands/th
+	// Relative: ../../../../../.claude/commands/th
+	symlinkPath := filepath.Join(nookCommandsDir, "th")
+	relTarget := filepath.Join("..", "..", "..", "..", "..", ".claude", "commands", "th")
+
+	if err := os.Symlink(relTarget, symlinkPath); err != nil {
+		return fmt.Errorf("failed to create symlink: %w", err)
+	}
+
+	return nil
 }

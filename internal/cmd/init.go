@@ -94,10 +94,7 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 	dirs := []string{
 		basePath,
 		filepath.Join(basePath, "nooks"),
-		filepath.Join(basePath, "crew"),
-		filepath.Join(basePath, "crew", "oak"),
-		filepath.Join(basePath, "crew", "oak", "memories"),
-		filepath.Join(basePath, "crew", "oak", "sessions"),
+		filepath.Join(basePath, "hats"),
 		filepath.Join(basePath, "workflows"),
 	}
 
@@ -117,13 +114,7 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 	}
 	created = append(created, "decks.yaml")
 	created = append(created, "nooks/")
-
-	// Create Oak agent files
-	if err := createOakAgent(filepath.Join(basePath, "crew", "oak")); err != nil {
-		_ = os.RemoveAll(basePath)
-		return nil, err
-	}
-	created = append(created, "crew/oak/")
+	created = append(created, "hats/")
 
 	// Install workflows from embedded assets
 	workflowsPath := filepath.Join(basePath, "workflows")
@@ -148,96 +139,7 @@ func createTreehouseStructure(basePath string) ([]string, error) {
 		created = append(created, ".claude/commands/th/workflows/"+c)
 	}
 
-	// Create Oak crew command stub
-	oakCommandPath, err := createOakCommandStub(repoRoot)
-	if err != nil {
-		_ = os.RemoveAll(basePath)
-		return nil, err
-	}
-	created = append(created, oakCommandPath)
-
 	return created, nil
-}
-
-// createOakAgent creates the default Oak agent files
-func createOakAgent(oakPath string) error {
-	// Create oak.agent.yaml
-	agentYAML := `agent:
-  metadata:
-    name: "Oak"
-    title: "Treehouse Assistant"
-    icon: "🌳"
-
-  persona:
-    role: "Navigate treehouse workspace and manage context"
-
-    identity: |
-      I am Oak, your treehouse assistant. I help you navigate between nooks,
-      manage your exploration context, and ensure nothing gets lost when
-      switching between branches of investigation.
-
-      I understand the deck/nook structure and can help you organize your
-      explorations effectively.
-
-    communication_style: |
-      Friendly and supportive. I provide clear guidance on treehouse operations
-      and help you maintain context across your explorations.
-
-    principles:
-      - "Always detect current nook context before acting"
-      - "Preserve context when switching between nooks"
-      - "Help organize explorations into logical decks"
-
-  critical_actions:
-    - "Detect current nook from git worktree folder name"
-    - "Construct paths: AGENT_FOLDER, MEMORY_FILE, SESSION_FILE"
-    - "Load knowledge.md for global context"
-    - "Load memories/{nook-id}.md for nook-specific context"
-    - "Load sessions/{nook-id}.md for session restoration"
-    - |
-      Your context window will be automatically compacted as it approaches
-      its limit, allowing you to continue working indefinitely from where
-      you left off. Therefore, do not stop tasks early due to token budget
-      concerns. As you approach your token budget limit, save your current
-      progress and state to memory before the context window refreshes.
-      Always be as persistent and autonomous as possible and complete tasks
-      fully, even if the end of your budget is approaching. Never artificially
-      stop any task early regardless of the context remaining.
-`
-	agentPath := filepath.Join(oakPath, "oak.agent.yaml")
-	if err := os.WriteFile(agentPath, []byte(agentYAML), 0644); err != nil {
-		return err
-	}
-
-	// Create knowledge.md
-	knowledgeMD := `# Oak - Project Knowledge
-
-> Global context accumulated across all nooks
-
----
-
-## Project Understanding
-
-{What Oak has learned about the project}
-
-## Key Patterns
-
-{Patterns Oak has identified}
-
-## Technical Debt
-
-{Items to address later}
-
-## Key Files
-
-{Important file paths and their purposes}
-`
-	knowledgePath := filepath.Join(oakPath, "knowledge.md")
-	if err := os.WriteFile(knowledgePath, []byte(knowledgeMD), 0644); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // installWorkflows copies embedded workflow files to .treehouse/workflows/
@@ -311,35 +213,6 @@ func installClaudeCommands(destPath string, repoRoot string) ([]string, error) {
 	}
 
 	return installed, nil
-}
-
-// createOakCommandStub creates the Claude command stub for Oak crew member
-func createOakCommandStub(repoRoot string) (string, error) {
-	// Create directory structure
-	commandDir := filepath.Join(repoRoot, ".claude", "commands", "th", "crew")
-	if err := os.MkdirAll(commandDir, 0755); err != nil {
-		return "", err
-	}
-
-	commandMD := `# 🌳 Oak
-
-Treehouse Assistant
-
-Load and activate the Oak agent.
-
-## Activation
-
-` + "```" + `
-/th:workflows:agent-loader oak
-` + "```" + `
-`
-
-	commandPath := filepath.Join(commandDir, "oak.md")
-	if err := os.WriteFile(commandPath, []byte(commandMD), 0644); err != nil {
-		return "", err
-	}
-
-	return ".claude/commands/th/crew/oak.md", nil
 }
 
 // treehouseGitignoreMarker is the marker used to identify the treehouse managed block

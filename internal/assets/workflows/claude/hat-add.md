@@ -1,11 +1,11 @@
 ---
-name: 'crew-add'
-description: 'Create a new crew member from template'
+name: 'hat-add'
+description: 'Create a new treehouse hat'
 ---
 
 TREEHOUSE_BASE_WORKSPACE={{TREEHOUSE_BASE_WORKSPACE}}
 
 <workflow-loader>
 1. Use `TREEHOUSE_BASE_WORKSPACE` defined above as `BASE_PATH`
-2. LOAD and EXECUTE the workflow from `{BASE_PATH}/.treehouse/workflows/crew-add.md`
+2. LOAD and EXECUTE the workflow from `{BASE_PATH}/.treehouse/workflows/hat-add.md`
 </workflow-loader>

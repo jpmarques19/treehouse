@@ -49,16 +49,10 @@ func TestInitCommand_Success(t *testing.T) {
 		t.Error("decks.yaml was not created")
 	}
 
-	// Verify crew/oak folder was created
-	oakPath := filepath.Join(treehousePath, "crew", "oak")
-	if _, err := os.Stat(oakPath); os.IsNotExist(err) {
-		t.Error("crew/oak folder was not created")
-	}
-
-	// Verify oak.agent.yaml was created
-	oakAgentPath := filepath.Join(oakPath, "oak.agent.yaml")
-	if _, err := os.Stat(oakAgentPath); os.IsNotExist(err) {
-		t.Error("oak.agent.yaml was not created")
+	// Verify hats folder was created
+	hatsPath := filepath.Join(treehousePath, "hats")
+	if _, err := os.Stat(hatsPath); os.IsNotExist(err) {
+		t.Error("hats/ folder was not created")
 	}
 
 	// Verify workflows folder was created
@@ -174,56 +168,6 @@ func TestDecksYamlContent(t *testing.T) {
 	}
 }
 
-func TestOakAgentCreation(t *testing.T) {
-	dir := testutil.SetupGitRepo(t)
-	testutil.ChdirWithCleanup(t, dir)
-
-	// Capture output
-	var buf bytes.Buffer
-	output.SetWriter(&buf)
-	t.Cleanup(func() { output.SetWriter(os.Stdout) })
-
-	// Run init command
-	exitCode := Execute([]string{"init"})
-	if exitCode != 0 {
-		t.Fatalf("init failed with exit code %d", exitCode)
-	}
-
-	oakPath := filepath.Join(dir, ".treehouse", "crew", "oak")
-
-	// Verify oak.agent.yaml exists and contains required fields
-	agentPath := filepath.Join(oakPath, "oak.agent.yaml")
-	content, err := os.ReadFile(agentPath)
-	if err != nil {
-		t.Fatalf("failed to read oak.agent.yaml: %v", err)
-	}
-
-	// Check for required content
-	requiredFields := []string{"name:", "Oak", "title:", "Treehouse Assistant", "icon:"}
-	for _, field := range requiredFields {
-		if !bytes.Contains(content, []byte(field)) {
-			t.Errorf("oak.agent.yaml missing required field: %s", field)
-		}
-	}
-
-	// Verify knowledge.md exists
-	knowledgePath := filepath.Join(oakPath, "knowledge.md")
-	if _, err := os.Stat(knowledgePath); os.IsNotExist(err) {
-		t.Error("knowledge.md was not created")
-	}
-
-	// Verify memories/ directory exists
-	memoriesPath := filepath.Join(oakPath, "memories")
-	if _, err := os.Stat(memoriesPath); os.IsNotExist(err) {
-		t.Error("memories/ directory was not created")
-	}
-
-	// Verify sessions/ directory exists
-	sessionsPath := filepath.Join(oakPath, "sessions")
-	if _, err := os.Stat(sessionsPath); os.IsNotExist(err) {
-		t.Error("sessions/ directory was not created")
-	}
-}
 
 func TestWorkflowInstallation(t *testing.T) {
 	dir := testutil.SetupGitRepo(t)
@@ -242,7 +186,7 @@ func TestWorkflowInstallation(t *testing.T) {
 
 	// Verify workflows are installed
 	workflowsPath := filepath.Join(dir, ".treehouse", "workflows")
-	expectedWorkflows := []string{"huddle.md", "nook-fork.md", "treehouse-init.md", "treehouse-view.md"}
+	expectedWorkflows := []string{"nook-fork.md", "treehouse-init.md", "treehouse-view.md"}
 
 	for _, wf := range expectedWorkflows {
 		wfPath := filepath.Join(workflowsPath, wf)
@@ -269,7 +213,7 @@ func TestClaudeCommandInstallation(t *testing.T) {
 
 	// Verify Claude commands are installed
 	claudePath := filepath.Join(dir, ".claude", "commands", "th", "workflows")
-	expectedCommands := []string{"huddle.md", "nook-fork.md", "treehouse-init.md", "treehouse-view.md"}
+	expectedCommands := []string{"nook-fork.md", "treehouse-init.md", "treehouse-view.md"}
 
 	for _, cmd := range expectedCommands {
 		cmdPath := filepath.Join(claudePath, cmd)
@@ -294,41 +238,6 @@ func TestClaudeCommandInstallation(t *testing.T) {
 	}
 }
 
-func TestOakCommandStubCreation(t *testing.T) {
-	dir := testutil.SetupGitRepo(t)
-	testutil.ChdirWithCleanup(t, dir)
-
-	// Capture output
-	var buf bytes.Buffer
-	output.SetWriter(&buf)
-	t.Cleanup(func() { output.SetWriter(os.Stdout) })
-
-	// Run init command
-	exitCode := Execute([]string{"init"})
-	if exitCode != 0 {
-		t.Fatalf("init failed with exit code %d", exitCode)
-	}
-
-	// Verify Oak command stub was created
-	oakStubPath := filepath.Join(dir, ".claude", "commands", "th", "crew", "oak.md")
-	if _, err := os.Stat(oakStubPath); os.IsNotExist(err) {
-		t.Error("Oak command stub was not created at .claude/commands/th/crew/oak.md")
-	}
-
-	// Verify content has agent-loader reference
-	content, err := os.ReadFile(oakStubPath)
-	if err != nil {
-		t.Fatalf("failed to read oak.md: %v", err)
-	}
-
-	if !bytes.Contains(content, []byte("agent-loader oak")) {
-		t.Error("oak.md missing agent-loader reference")
-	}
-
-	if !bytes.Contains(content, []byte("Oak")) {
-		t.Error("oak.md missing Oak title")
-	}
-}
 
 func TestGitignoreCreation(t *testing.T) {
 	dir := testutil.SetupGitRepo(t)
