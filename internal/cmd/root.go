@@ -57,7 +57,9 @@ func Execute(args []string) int {
 	listExitCode = 0
 	removeExitCode = 0
 	pruneExitCode = 0
-	crewExitCode = 0
+	hatExitCode = 0
+	pinExitCode = 0
+	boardExitCode = 0
 
 	rootCmd.SetArgs(args)
 
@@ -98,9 +100,19 @@ func Execute(args []string) int {
 		return pruneExitCode
 	}
 
-	// Check if crew command was executed and return its exit code
-	if len(args) > 0 && args[0] == "crew" {
-		return crewExitCode
+	// Check if hat command was executed and return its exit code
+	if len(args) > 0 && args[0] == "hat" {
+		return hatExitCode
+	}
+
+	// Check if pin command was executed and return its exit code
+	if len(args) > 0 && args[0] == "pin" {
+		return pinExitCode
+	}
+
+	// Check if board command was executed and return its exit code
+	if len(args) > 0 && args[0] == "board" {
+		return boardExitCode
 	}
 
 	return 0
