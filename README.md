@@ -12,9 +12,9 @@
 
 When projects grow, you need to explore multiple directions at once—investigating issues, trying new approaches, running experiments. Each exploration benefits from isolation, but creates a hidden cost: your documents, configurations, and decisions start drifting apart.
 
-Treehouse solves this with **focused nook environments** (git worktrees) and **persistent AI crew members** that maintain context across sessions.
+Treehouse solves this with **focused nook environments** (git worktrees), **persistent AI hats** for domain knowledge, and **boards** that capture learnings per nook.
 
-**The key insight**: Each nook is isolated for focused work, but crew members persist. Your AI assistants remember decisions, accumulate knowledge, and stay consistent regardless of which nook you're working in.
+**The key insight**: Each nook is isolated for focused work, but hats provide cross-cutting domain knowledge. Boards capture nook-specific learnings that persist across sessions.
 
 ## How It Works
 
@@ -22,20 +22,18 @@ Treehouse solves this with **focused nook environments** (git worktrees) and **p
 Your Repository
 │
 ├── .treehouse/                       ← Treehouse configuration
-│   ├── crew/                         ← AI crew members with persistent memory
-│   │   └── oak/
-│   │       ├── oak.agent.yaml        ← Agent definition
-│   │       ├── knowledge.md          ← Accumulated knowledge
-│   │       ├── memories/             ← Session memories
-│   │       └── sessions/             ← Session logs
+│   ├── hats/                         ← AI hats with project specific domain knowledge
+│   │   ├── reviewer.md               ← Simple .md files
+│   │   └── architect.md
 │   ├── nooks/                        ← Isolated worktrees for focused work
+│   │   ├── boards.yaml               ← Pins (learnings) per nook
 │   │   ├── a1b2-feature-auth/
 │   │   └── 7f3e-spike-perf/
 │   └── workflows/                    ← Workflow definitions
 │
 ├── .claude/commands/th/              ← Claude Code integration
 │   ├── workflows/                    ← Workflow stubs
-│   └── crew/                         ← Crew member stubs
+│   └── hats/                         ← Hat command stubs
 │
 └── your-code/
 ```
@@ -56,16 +54,15 @@ th init
 
 This bootstraps your repository with:
 - `.treehouse/` folder structure
-- Default Oak assistant (your first crew member)
 - Claude Code workflow stubs
 
-### 2. Load Your Assistant
+### 2. Create a Hat
 
 ```
-/th:crew:oak
+/th:workflows:hat-add
 ```
 
-Oak is ready to help. Crew members persist across sessions and accumulate knowledge as you work.
+Hats contain domain knowledge that applies across all nooks—coding standards, architecture decisions, project conventions.
 
 ### 3. Create a Nook for Focused Work
 
@@ -75,37 +72,75 @@ Oak is ready to help. Crew members persist across sessions and accumulate knowle
 
 Creates an isolated git worktree for focused exploration. Work freely without affecting your main branch.
 
-### 4. Work, Checkpoint, Merge
+### 4. Pin Learnings to the Board
 
+```bash
+th pin "Decided to use YAML for config files"
 ```
-/th:workflows:checkpoint    # Save context before switching
+
+Or use the workflow:
+```
+/th:workflows:pin
 ```
 
-When ready, merge changes back and clean up the worktree.
+Pins capture nook-specific learnings—decisions made, context discovered, notes for future sessions. View them with:
 
-## Claude Workflows
+```bash
+th board
+```
 
-All treehouse operations happen through Claude workflows:
+### 5. Merge When Ready
+
+When your work is complete, merge changes back and clean up the worktree.
+
+## CLI Commands
 
 | Command | Description |
 |---------|-------------|
-| `/th:crew:{name}` | Load a crew member |
+| `th init` | Initialize treehouse in a repository |
+| `th fork <name>` | Create a new nook (worktree) |
+| `th list` | List all nooks |
+| `th pin <content>` | Save a learning to the current nook's board |
+| `th board` | View all pins for the current nook |
+| `th hat add <name> <config>` | Create a new hat |
+
+## Claude Workflows
+
+All treehouse operations also work through Claude workflows:
+
+| Command | Description |
+|---------|-------------|
+| `/th:hats:{name}` | Load a hat |
 | `/th:workflows:nook-fork` | Create a focused worktree |
-| `/th:workflows:checkpoint` | Save current context |
+| `/th:workflows:pin` | Save learnings to the board |
 | `/th:workflows:treehouse-view` | View all nooks |
-| `/th:workflows:crew-add` | Create a new crew member |
-| `/th:workflows:huddle` | Multi-agent discussion |
+| `/th:workflows:hat-add` | Create a new hat |
 
-## Crew System
+## Hats System
 
-Crew members are AI agents with persistent identity and memory:
+Hats are lightweight domain knowledge containers:
 
-- **Agent definition** (`{name}.agent.yaml`) - Role, persona, principles
-- **Knowledge base** (`knowledge.md`) - Accumulated context
-- **Memories** - Session-to-session continuity
-- **Sessions** - Interaction logs
+- **Knowledge base** (`knowledge.md`) - Domain expertise that applies across all nooks
+- Create specialized hats for different concerns—code review standards, architecture patterns, domain terminology
 
-Create specialized crew members for different tasks—code reviewers, architects, domain experts—each maintaining their own perspective and knowledge.
+## Boards System
+
+Boards capture nook-specific learnings:
+
+- **Pins** - Timestamped notes saved to `boards.yaml`
+- Each nook has its own section in the board
+- Pins persist across sessions, helping you resume context
+- Use `th pin` from within a nook to save learnings
+- Use `th board` to view all pins for the current nook
+
+```yaml
+# .treehouse/nooks/boards.yaml
+a1b2-feature-auth:
+  - ts: "2026-01-18T10:30:00Z"
+    content: |
+      Decided to use JWT for auth tokens.
+      Session duration: 24 hours.
+```
 
 ## Path Resolution
 
@@ -113,7 +148,7 @@ Treehouse hardcodes the base workspace path into Claude stubs during `th init`. 
 
 ## Why "Treehouse"?
 
-Your repo is the tree. The `.treehouse/` is your elevated workspace built on top of it. **Nooks** are cozy corners for focused work. **Crew** members live there with you, remembering what matters.
+Your repo is the tree. The `.treehouse/` is your elevated workspace built on top of it. **Nooks** are cozy corners for focused work. **Hats** provide domain expertise. **Boards** remember what you've learned.
 
 ---
 
